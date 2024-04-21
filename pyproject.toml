@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "artistic-intelligence-data"
+version = "0.1.0"
+description = "Data collector, query API and more to create digital art."
+authors = ["Robin Klaassen"]
+license = "GPL-3.0"
+readme = "README.md"
+packages = [{include = "artistic_intelligence_data"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+requests = "^2.31.0"
+pydantic = "^2.7.0"
+psycopg2 = "^2.9.9"
+structlog = "^24.1.0"
+APScheduler = "^3.10.4"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.1.1"
+ruff = "^0.4.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

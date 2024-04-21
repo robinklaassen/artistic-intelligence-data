@@ -5,7 +5,7 @@ from datetime import datetime
 import psycopg2
 from dotenv import load_dotenv
 
-from utils.logger import logger
+from artistic_intelligence_data.utils.logger import logger
 
 
 class BaseCollector(ABC):
