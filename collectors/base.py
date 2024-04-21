@@ -1,8 +1,11 @@
 import os
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 import psycopg2
 from dotenv import load_dotenv
+
+from utils.logger import logger
 
 
 class BaseCollector(ABC):
@@ -22,7 +25,18 @@ class BaseCollector(ABC):
         """The interval that this collector should run on, in seconds."""
         raise NotImplementedError
 
-    @abstractmethod
     def run(self):
         """Run this collector once."""
+        start_time = datetime.now()
+        try:
+            record_count = self._execute(start_time)
+        except Exception as exc:  # anything can happen
+            logger.error(self.__class__.__name__, exception=exc)
+            return
+        duration_seconds = (datetime.now() - start_time).total_seconds()
+        logger.info(self.__class__.__name__, record_count=record_count, duration_seconds=duration_seconds)
+
+    @abstractmethod
+    def _execute(self, timestamp: datetime) -> int:
+        """Execute the work specific to this collector. Return the amount of records processed."""
         raise NotImplementedError

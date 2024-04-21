@@ -49,12 +49,12 @@ class TrainCollector(BaseCollector):
         super().__init__()
         self._api_key = os.getenv("NS_API_KEY")
 
-    def run(self):
-        start_time = datetime.now()
+    def _execute(self, timestamp: datetime) -> int:
         trains = self._get_trains()
-        self._store_trains(trains, start_time)
-        logger.info("Collected train records", count=len(trains.payload.treinen),
-                    total_seconds=(datetime.now() - start_time).total_seconds())
+        if trains is None:
+            return 0
+        self._store_trains(trains, timestamp)
+        return len(trains.payload.treinen)
 
     def _get_trains(self) -> TrainResponse | None:
         response = requests.get(NS_VIRTUAL_TRAIN_URL,
