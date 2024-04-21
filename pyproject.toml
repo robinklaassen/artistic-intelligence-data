@@ -2,8 +2,10 @@
 name = "artistic-intelligence-data"
 version = "0.1.0"
 description = "Data collector, query API and more to create digital art."
-authors = ["Robin Klaassen"]
-license = "GPL-3.0"
+homepage = "https://artisticintelligence.nl"
+repository = "https://github.com/robinklaassen/artistic-intelligence-data"
+authors = ["Robin Klaassen <info@robinklaassen.com>"]
+license = "GPL-3.0-or-later"
 readme = "README.md"
 packages = [{include = "artistic_intelligence_data"}]
 
@@ -15,6 +17,8 @@ psycopg2 = "^2.9.9"
 structlog = "^24.1.0"
 APScheduler = "^3.10.4"
 
+[tool.poetry.group.dev]
+optional = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.1.1"
@@ -22,6 +26,10 @@ ruff = "^0.4.1"
 mypy = "^1.9.0"
 types-psycopg2 = "^2.9.21.20240417"
 types-requests = "^2.31.0.20240406"
+scons = "^4.7.0"
+
+[tool.poetry.scripts]
+artistic-intelligence-data = "artistic_intelligence_data.main:main"
 
 [build-system]
 requires = ["poetry-core"]

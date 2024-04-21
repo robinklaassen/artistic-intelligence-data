@@ -476,6 +476,17 @@ files = [
 ]
 
 [[package]]
+name = "scons"
+version = "4.7.0"
+description = "Open Source next-generation build tool."
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "SCons-4.7.0-py3-none-any.whl", hash = "sha256:93308e564966760a63a4c1e016b2cc15d07bb40db67b1c907732da0b9e9f8959"},
+    {file = "SCons-4.7.0.tar.gz", hash = "sha256:d8b617f6610a73e46509de70dcf82f76861b79762ff602d546f4e80918ec81f3"},
+]
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -587,4 +598,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "48beefca3f2fea37ed2f8c1f38a346e6dfdca4c34b689aa9e933df76a874e04c"
+content-hash = "9eb9537a5e9d53eced6f593f2f8144ea0526b33c843ab6bf16984436216633a9"
