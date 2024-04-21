@@ -1,12 +1,20 @@
+import os
 from abc import ABC, abstractmethod
 
+import psycopg2
 from dotenv import load_dotenv
 
 
 class BaseCollector(ABC):
 
     def __init__(self):
-        load_dotenv(verbose=True)
+        load_dotenv(verbose=True)  # allows running individual collectors locally for testing
+
+        self._pg_conn = psycopg2.connect(
+            dbname=os.getenv("PG_DBNAME"),
+            user=os.getenv("PG_USER"),
+            password=os.getenv("PG_PASS"),
+        )
 
     @property
     @abstractmethod
