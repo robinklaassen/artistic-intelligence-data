@@ -5,6 +5,8 @@ import requests
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
+from logger import logger
+
 load_dotenv()
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
@@ -44,6 +46,7 @@ def get_trains() -> TrainResponse | None:
                             timeout=10)
 
     if not response.ok:
+        logger.error("Train response error", code=response.status_code, text=response.text)
         return None
 
     return TrainResponse.model_validate_json(response.text, strict=True)
@@ -52,4 +55,5 @@ def get_trains() -> TrainResponse | None:
 if __name__ == "__main__":
     trains = get_trains()
     if trains is not None:
-        pp(trains.model_dump())
+        logger.info("Collected train records", count=len(trains.payload.treinen))
+        # pp(trains.model_dump())
