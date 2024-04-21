@@ -9,9 +9,10 @@ from artistic_intelligence_data.utils.logger import logger
 
 
 class BaseCollector(ABC):
-
     def __init__(self):
-        load_dotenv(verbose=True)  # allows running individual collectors locally for testing
+        load_dotenv(
+            verbose=True
+        )  # allows running individual collectors locally for testing
 
         self._pg_conn = psycopg2.connect(
             dbname=os.getenv("PG_DBNAME"),
@@ -34,7 +35,11 @@ class BaseCollector(ABC):
             logger.error(self.__class__.__name__, exception=exc)
             return
         duration_seconds = (datetime.now() - start_time).total_seconds()
-        logger.info(self.__class__.__name__, record_count=record_count, duration_seconds=duration_seconds)
+        logger.info(
+            self.__class__.__name__,
+            record_count=record_count,
+            duration_seconds=duration_seconds,
+        )
 
     @abstractmethod
     def _execute(self, timestamp: datetime) -> int:

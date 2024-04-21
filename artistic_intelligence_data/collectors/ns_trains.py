@@ -57,17 +57,23 @@ class TrainCollector(BaseCollector):
         return len(trains.payload.treinen)
 
     def _get_trains(self) -> TrainResponse | None:
-        response = requests.get(NS_VIRTUAL_TRAIN_URL,
-                                headers={'Ocp-Apim-Subscription-Key': self._api_key},
-                                timeout=10)
+        response = requests.get(
+            NS_VIRTUAL_TRAIN_URL,
+            headers={"Ocp-Apim-Subscription-Key": self._api_key},
+            timeout=10,
+        )
 
         if not response.ok:
-            logger.error("Train response error", code=response.status_code, text=response.text)
+            logger.error(
+                "Train response error", code=response.status_code, text=response.text
+            )
             return None
 
         return TrainResponse.model_validate_json(response.text, strict=True)
 
-    def _store_trains(self, trains: TrainResponse, timestamp: datetime = datetime.now()):
+    def _store_trains(
+        self, trains: TrainResponse, timestamp: datetime = datetime.now()
+    ):
         with self._pg_conn as conn:
             with conn.cursor() as cur:
                 cur.executemany(
@@ -75,10 +81,19 @@ class TrainCollector(BaseCollector):
                     "(timestamp, rit_id, snelheid, richting, horizontale_nauwkeurigheid, type, bron, location) "
                     "values (%s, %s, %s, %s, %s, %s, %s, ST_MakePoint(%s, %s))",
                     [
-                        (timestamp, int(t.ritId), t.snelheid, t.richting, t.horizontaleNauwkeurigheid, t.type, t.bron,
-                         t.lng, t.lat)
+                        (
+                            timestamp,
+                            int(t.ritId),
+                            t.snelheid,
+                            t.richting,
+                            t.horizontaleNauwkeurigheid,
+                            t.type,
+                            t.bron,
+                            t.lng,
+                            t.lat,
+                        )
                         for t in trains.payload.treinen
-                    ]
+                    ],
                 )
 
         conn.close()
