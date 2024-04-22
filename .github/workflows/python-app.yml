@@ -3,38 +3,44 @@
 
 name: Python application
 
-on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+on: push
+
+env:
+  PYTHON_VERSION = "3.12"
 
 permissions:
   contents: read
 
 jobs:
-  build:
-
+  CI:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.12"
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --with dev
-    - name: Lint
-      run: scons lint
-    - name: Lock
-      run: scons lock
-    - name: Type
-      run: scons type
-    - name: Test
-      run: scons test
-    - name: Sec
-      run: scons sec
+      - uses: actions/checkout@v4
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: $PYTHON_VERSION
+          cache: "poetry"
+      - name: Install dependencies
+        run: poetry install --with dev
+      - name: Lint
+        run: scons lint
+      - name: Lock
+        run: scons lock
+      - name: Type
+        run: scons type
+      - name: Test
+        run: scons test
+      - name: Sec
+        run: scons sec
+
+  CD:
+    runs-on: ubuntu-latest
+    needs: CI
+    if: github.ref == "refs/heads/main"
+    steps:
+      - name: Deploy app
+        run: exit 0  # TODO
