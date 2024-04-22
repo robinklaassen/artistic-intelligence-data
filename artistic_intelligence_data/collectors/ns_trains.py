@@ -12,12 +12,6 @@ TARGET_SCHEMA = "raw"
 TARGET_TABLE = "ns_trains"
 
 
-# TODO list:
-#  - query API
-#  - package setup
-#  - CI/CD
-
-
 class TrainModel(BaseModel):
     treinNummer: int
     ritId: str
@@ -64,16 +58,12 @@ class TrainCollector(BaseCollector):
         )
 
         if not response.ok:
-            logger.error(
-                "Train response error", code=response.status_code, text=response.text
-            )
+            logger.error("Train response error", code=response.status_code, text=response.text)
             return None
 
         return TrainResponse.model_validate_json(response.text, strict=True)
 
-    def _store_trains(
-        self, trains: TrainResponse, timestamp: datetime = datetime.now()
-    ):
+    def _store_trains(self, trains: TrainResponse, timestamp: datetime = datetime.now()):
         with self._pg_conn as conn:
             with conn.cursor() as cur:
                 cur.executemany(

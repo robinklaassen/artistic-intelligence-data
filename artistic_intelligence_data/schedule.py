@@ -11,9 +11,7 @@ def construct_scheduler(
     scheduler = scheduler_cls()
     for collector_cls in ALL_COLLECTORS:
         collector = collector_cls()
-        scheduler.add_job(
-            collector.run, CronTrigger(second=f"*/{collector.interval_seconds}")
-        )
+        scheduler.add_job(collector.run, CronTrigger(second=f"*/{collector.interval_seconds}"))
 
     return scheduler
 

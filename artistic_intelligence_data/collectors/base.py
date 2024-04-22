@@ -10,9 +10,7 @@ from artistic_intelligence_data.utils.logger import logger
 
 class BaseCollector(ABC):
     def __init__(self):
-        load_dotenv(
-            verbose=True
-        )  # allows running individual collectors locally for testing
+        load_dotenv(verbose=True)  # allows running individual collectors locally for testing
 
         self._pg_conn = psycopg2.connect(
             dbname=os.getenv("PG_DBNAME"),

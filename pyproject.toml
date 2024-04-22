@@ -27,6 +27,7 @@ mypy = "^1.9.0"
 types-psycopg2 = "^2.9.21.20240417"
 types-requests = "^2.31.0.20240406"
 scons = "^4.7.0"
+bandit = "^1.7.8"
 
 [tool.poetry.scripts]
 artistic-intelligence-data = "artistic_intelligence_data.main:main"
@@ -34,6 +35,9 @@ artistic-intelligence-data = "artistic_intelligence_data.main:main"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
 
 [tool.mypy]
 ignore_missing_imports = true
