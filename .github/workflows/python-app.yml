@@ -26,15 +26,15 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev
       - name: Lint
-        run: scons lint
+        run: poetry run scons lint
       - name: Lock
-        run: scons lock
+        run: poetry run scons lock
       - name: Type
-        run: scons type
+        run: poetry run scons type
       - name: Test
-        run: scons test
+        run: poetry run scons test
       - name: Sec
-        run: scons sec
+        run: poetry run scons sec
 
   CD:
     runs-on: ubuntu-latest
