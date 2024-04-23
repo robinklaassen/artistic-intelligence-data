@@ -5,7 +5,7 @@ from datetime import datetime
 import psycopg2
 from dotenv import load_dotenv
 
-from aid.utils.logger import logger
+from aid.logger import logger
 
 
 class BaseCollector(ABC):

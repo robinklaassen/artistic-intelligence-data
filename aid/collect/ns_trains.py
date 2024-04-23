@@ -4,8 +4,8 @@ from datetime import datetime
 import requests
 from pydantic import BaseModel
 
-from aid.collectors.base import BaseCollector
-from aid.utils.logger import logger
+from aid.collect.base_collector import BaseCollector
+from aid.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
 TARGET_SCHEMA = "raw"
@@ -32,7 +32,7 @@ class TrainResponse(BaseModel):
     payload: TrainPayload
 
 
-class TrainCollector(BaseCollector):
+class NSTrainCollector(BaseCollector):
     """
     Collect live train locations from NS API.
     """
@@ -88,8 +88,8 @@ class TrainCollector(BaseCollector):
 
 
 if __name__ == "__main__":
-    trains = TrainCollector()._get_trains()
+    trains = NSTrainCollector()._get_trains()
     if trains is not None:
         print(trains.payload.treinen[0])
 
-    TrainCollector().run()
+    NSTrainCollector().run()

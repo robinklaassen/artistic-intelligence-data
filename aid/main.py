@@ -1,7 +1,7 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-from aid.schedule import construct_scheduler
-from aid.utils.logger import logger
+from aid.collect.scheduler import construct_scheduler
+from aid.logger import logger
 
 
 def main():
