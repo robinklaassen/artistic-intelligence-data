@@ -4,8 +4,8 @@ from datetime import datetime
 import requests
 from pydantic import BaseModel
 
-from artistic_intelligence_data.collectors.base import BaseCollector
-from artistic_intelligence_data.utils.logger import logger
+from aid.collectors.base import BaseCollector
+from aid.utils.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
 TARGET_SCHEMA = "raw"

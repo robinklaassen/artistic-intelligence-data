@@ -5,7 +5,7 @@ from typing import Mapping
 
 from SCons.Script import COMMAND_LINE_TARGETS
 
-_SUBJECT = "artistic_intelligence_data"
+_SUBJECT = "aid"
 _TEST_SUBJECT = "tests"
 
 # Remember if a target has been found, to warn if not.

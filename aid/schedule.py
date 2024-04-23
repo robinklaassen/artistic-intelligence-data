@@ -2,7 +2,7 @@ from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from artistic_intelligence_data.collectors import ALL as ALL_COLLECTORS
+from aid.collectors import ALL as ALL_COLLECTORS
 
 
 def construct_scheduler(
