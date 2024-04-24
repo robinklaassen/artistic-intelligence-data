@@ -17,7 +17,7 @@ psycopg2 = "^2.9.9"
 structlog = "^24.1.0"
 APScheduler = "^3.10.4"
 fastapi = "^0.110.2"
-uvicorn = "^0.29.0"
+uvicorn = {extras = ["standard"], version = "^0.29.0"}
 
 [tool.poetry.group.dev]
 optional = true
