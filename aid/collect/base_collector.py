@@ -14,8 +14,8 @@ class BaseCollector(ABC):
 
         self._pg_conn = psycopg2.connect(
             dbname=os.getenv("PG_DBNAME", "postgres"),
-            user=os.getenv("PG_USER", "postgres"),
-            password=os.getenv("PG_PASS", ""),
+            user=os.getenv("PG_WRITE_USER", "postgres"),
+            password=os.getenv("PG_WRITE_PASS", ""),
             host=os.getenv("PG_HOST", "localhost"),
             port=os.getenv("PG_PORT", "5432"),
         )

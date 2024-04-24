@@ -3,7 +3,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from aid.collect.scheduler import construct_scheduler
 from aid.logger import logger
-from aid.query.api import app
+from aid.provide.api import app
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
         logger.info("Starting scheduler", type=job_scheduler.__class__.__name__)
         job_scheduler.start()
         logger.info("Starting web server")
-        uvicorn.run(app)
+        uvicorn.run(app)  # TODO coalesce log formats
     except (KeyboardInterrupt, SystemExit) as exc:
         logger.info("Graceful exit", signal=exc.__class__.__name__)
 
