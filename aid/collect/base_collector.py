@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 
-import psycopg2
+import psycopg
 from dotenv import load_dotenv
 
 from aid.logger import logger
@@ -12,7 +12,7 @@ class BaseCollector(ABC):
     def __init__(self):
         load_dotenv(verbose=True)  # allows running individual collectors locally for testing
 
-        self._pg_conn = psycopg2.connect(
+        self._pg_conn = psycopg.connect(
             dbname=os.getenv("PG_DBNAME", "postgres"),
             user=os.getenv("PG_WRITE_USER", "postgres"),
             password=os.getenv("PG_WRITE_PASS", ""),
