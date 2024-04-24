@@ -4,6 +4,7 @@ from datetime import datetime
 
 import psycopg
 from dotenv import load_dotenv
+from psycopg import Connection
 
 from aid.logger import logger
 
@@ -12,7 +13,10 @@ class BaseCollector(ABC):
     def __init__(self):
         load_dotenv(verbose=True)  # allows running individual collectors locally for testing
 
-        self._pg_conn = psycopg.connect(
+    @property
+    def _pg_conn(self) -> Connection:
+        """Open and return a new connection to the Postgres database."""
+        return psycopg.connect(
             dbname=os.getenv("PG_DBNAME", "postgres"),
             user=os.getenv("PG_WRITE_USER", "postgres"),
             password=os.getenv("PG_WRITE_PASS", ""),
@@ -32,7 +36,7 @@ class BaseCollector(ABC):
         try:
             record_count = self._execute(start_time)
         except Exception as exc:  # anything can happen
-            logger.error(self.__class__.__name__, exception=exc)
+            logger.error(self.__class__.__name__, err_type=exc.__class__.__name__, msg=str(exc))
             return
         duration_seconds = (datetime.now() - start_time).total_seconds()
         logger.info(

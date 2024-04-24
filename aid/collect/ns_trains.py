@@ -64,12 +64,16 @@ class NSTrainCollector(BaseCollector):
         return TrainResponse.model_validate_json(response.text, strict=True)
 
     def _store_trains(self, trains: TrainResponse, timestamp: datetime = datetime.now()):
+        query = f"""
+        insert into {TARGET_SCHEMA}.{TARGET_TABLE}
+        (timestamp, rit_id, snelheid, richting, horizontale_nauwkeurigheid, type, bron, location)
+        values (%s, %s, %s, %s, %s, %s, %s, ST_MakePoint(%s, %s))
+        """
+
         with self._pg_conn as conn:
             with conn.cursor() as cur:
                 cur.executemany(
-                    f"insert into {TARGET_SCHEMA}.{TARGET_TABLE} "
-                    "(timestamp, rit_id, snelheid, richting, horizontale_nauwkeurigheid, type, bron, location) "
-                    "values (%s, %s, %s, %s, %s, %s, %s, ST_MakePoint(%s, %s))",
+                    query,
                     [
                         (
                             timestamp,
