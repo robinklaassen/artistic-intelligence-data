@@ -8,8 +8,6 @@ from aid.collect.base_collector import BaseCollector
 from aid.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
-TARGET_SCHEMA = "raw"
-TARGET_TABLE = "ns_trains"
 
 
 class TrainModel(BaseModel):
@@ -64,31 +62,30 @@ class NSTrainCollector(BaseCollector):
         return TrainResponse.model_validate_json(response.text, strict=True)
 
     def _store_trains(self, trains: TrainResponse, timestamp: datetime = datetime.now()):
-        query = f"""
-        insert into {TARGET_SCHEMA}.{TARGET_TABLE}
+        query = """
+        insert into raw.ns_trains
         (timestamp, rit_id, snelheid, richting, horizontale_nauwkeurigheid, type, bron, location)
         values (%s, %s, %s, %s, %s, %s, %s, ST_MakePoint(%s, %s))
         """
 
+        params = [
+            (
+                timestamp,
+                int(t.ritId),
+                t.snelheid,
+                t.richting,
+                t.horizontaleNauwkeurigheid,
+                t.type,
+                t.bron,
+                t.lng,
+                t.lat,
+            )
+            for t in trains.payload.treinen
+        ]
+
         with self._pg_conn as conn:
             with conn.cursor() as cur:
-                cur.executemany(
-                    query,
-                    [
-                        (
-                            timestamp,
-                            int(t.ritId),
-                            t.snelheid,
-                            t.richting,
-                            t.horizontaleNauwkeurigheid,
-                            t.type,
-                            t.bron,
-                            t.lng,
-                            t.lat,
-                        )
-                        for t in trains.payload.treinen
-                    ],
-                )
+                cur.executemany(query, params)
 
 
 if __name__ == "__main__":

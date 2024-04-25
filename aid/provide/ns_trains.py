@@ -13,19 +13,27 @@ class TrainRecord:
     id: int
     x: float
     y: float
+    speed: float
+    direction: float
+    accuracy: float
 
 
 class NSTrainProvider(BaseProvider):
     def get_trains(self, start: datetime, end: datetime) -> list[TrainRecord]:
+        # TODO this could be view in postgres
+        # TODO optional gap filling
         query = """
-        select timestamp, rit_id as id, st_x(st_transform(location, 28992)) as x, st_y(st_transform(location, 28992)) as y
+        select time_bucket('10 seconds', timestamp, '-5 seconds'::INTERVAL) + '5 seconds' as timestamp, rit_id as id, 
+            avg(st_x(st_transform(location, 28992))) as x, avg(st_y(st_transform(location, 28992))) as y,
+            avg(snelheid) as speed, avg(richting) as direction, avg(horizontale_nauwkeurigheid) as accuracy
         from raw.ns_trains
         where timestamp between %s and %s
+        group by timestamp, rit_id
+        order by timestamp asc, rit_id asc
         """
         with self._pg_conn as conn:
             with conn.cursor(row_factory=class_row(TrainRecord)) as cur:
-                cur.execute(query, (start, end))
-                results = cur.fetchall()
+                results = cur.execute(query, (start, end)).fetchall()
 
         return results
 
