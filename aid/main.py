@@ -1,9 +1,20 @@
+import logging
+import os
+import sys
+
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from aid.collect.scheduler import construct_scheduler
-from aid.logger import logger
+from aid.logger import logger, LOG_DATE_FORMAT
 from aid.provide.api import app
+
+logging.basicConfig(
+    stream=sys.stdout,
+    format="%(asctime)s [%(levelname)-9s] %(message)s",  # aligns with structlog
+    datefmt=LOG_DATE_FORMAT,
+    level=logging.WARNING,
+)
 
 
 def main():
@@ -12,8 +23,11 @@ def main():
     try:
         logger.info("Starting scheduler", type=job_scheduler.__class__.__name__)
         job_scheduler.start()
-        logger.info("Starting web server")
-        uvicorn.run(app)  # TODO coalesce log formats
+
+        host = os.getenv("API_HOST", "127.0.0.1")
+        port = os.getenv("API_PORT", "8000")
+        logger.info("Starting web server", host=host, port=port)
+        uvicorn.run(app, host=host, port=int(port), log_config=None)
     except (KeyboardInterrupt, SystemExit) as exc:
         logger.info("Graceful exit", signal=exc.__class__.__name__)
 
