@@ -47,10 +47,16 @@ def get_api_key(resolved_header: str = Security(api_key_header)) -> str:
         raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="API key missing or invalid")
 
 
-@app.get("/trains", tags=["trains"])
-def get_trains(
+@app.get("/train-locations", tags=["trains"])
+def get_train_locations(
     api_key: APIKey = Depends(get_api_key), start: datetime | None = None, end: datetime | None = None
 ) -> list[TrainRecord]:
+    """
+    Get the train locations for a certain period.
+
+    - **start**: start of the requested period (timestamp, default 10 seconds ago)
+    - **end**: end of the requested period (timestamp, default now)
+    """
     end = end or datetime.now()
     start = start or (end - timedelta(seconds=10))
     return NSTrainProvider().get_trains(start, end)
