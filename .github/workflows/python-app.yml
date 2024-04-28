@@ -42,4 +42,10 @@ jobs:
     if: github.ref == 'refs/heads/main'  # expression strings must be single quoted
     steps:
       - name: Deploy app
-        run: exit 0  # TODO
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            exit 0

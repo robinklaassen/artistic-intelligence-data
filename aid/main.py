@@ -4,6 +4,7 @@ import sys
 
 import uvicorn
 from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
 
 from aid.collect.scheduler import construct_scheduler
 from aid.logger import logger, LOG_DATE_FORMAT
@@ -33,4 +34,5 @@ def main():
 
 
 if __name__ == "__main__":
+    load_dotenv()
     main()
