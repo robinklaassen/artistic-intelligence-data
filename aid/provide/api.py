@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI, Security, HTTPException, Depends
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.openapi.models import APIKey
 from fastapi.security import APIKeyHeader
 from starlette.status import HTTP_403_FORBIDDEN
@@ -17,6 +18,10 @@ Check out the [Artistic Intelligence website](https://artisticintelligence.nl/) 
 
 This API (and data collector) is open source, 
 [find it on GitHub](https://github.com/robinklaassen/artistic-intelligence-data).
+
+Notes:
+- These tend to be large datasets. To compress in transport, 
+add the `Accept-Encoding: gzip` header to your HTTP request.
 """
 
 tags_metadata = [
@@ -37,6 +42,8 @@ app = FastAPI(
     docs_url="/",
     redoc_url=None,
 )
+
+app.add_middleware(GZipMiddleware, minimum_size=10_000)  # minimum size in bytes
 
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
