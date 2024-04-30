@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 
 from aid.collect.scheduler import construct_scheduler
 from aid.logger import logger, LOG_DATE_FORMAT
-from aid.provide.api import app
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -28,9 +27,11 @@ def main():
         host = os.getenv("API_HOST", "127.0.0.1")
         port = os.getenv("API_PORT", "8000")
         logger.info("Starting web server", host=host, port=port)
-        uvicorn.run(app, host=host, port=int(port), log_config=None)
+        uvicorn.run("aid.provide.api:app", host=host, port=int(port), workers=2, log_config=None)
     except (KeyboardInterrupt, SystemExit) as exc:
+        # TODO also catch sigterm
         logger.info("Graceful exit", signal=exc.__class__.__name__)
+        job_scheduler.shutdown()
 
 
 if __name__ == "__main__":

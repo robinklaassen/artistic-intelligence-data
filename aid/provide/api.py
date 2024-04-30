@@ -81,4 +81,4 @@ def get_train_locations_in_period(
 
 if __name__ == "__main__":
     load_dotenv()
-    uvicorn.run(app)
+    uvicorn.run("aid.provide.api:app", workers=2)
