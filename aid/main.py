@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 import sys
 
 import uvicorn
@@ -8,6 +9,7 @@ from dotenv import load_dotenv
 
 from aid.collect.scheduler import construct_scheduler
 from aid.logger import logger, LOG_DATE_FORMAT
+from aid.provide.api import APP_MODULE
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -20,6 +22,8 @@ logging.basicConfig(
 def main():
     """Run the complete application."""
     job_scheduler = construct_scheduler(BackgroundScheduler)
+    signal.signal(signal.SIGTERM, lambda sig, frame: sys.exit())  # sys.exit() raises SystemExit which is caught below
+
     try:
         logger.info("Starting scheduler", type=job_scheduler.__class__.__name__)
         job_scheduler.start()
@@ -27,11 +31,11 @@ def main():
         host = os.getenv("API_HOST", "127.0.0.1")
         port = os.getenv("API_PORT", "8000")
         logger.info("Starting web server", host=host, port=port)
-        uvicorn.run("aid.provide.api:app", host=host, port=int(port), workers=2, log_config=None)
-    except (KeyboardInterrupt, SystemExit) as exc:
-        # TODO also catch sigterm
-        logger.info("Graceful exit", signal=exc.__class__.__name__)
-        job_scheduler.shutdown()
+        uvicorn.run(APP_MODULE, host=host, port=int(port), workers=2, log_config=None)
+    except (KeyboardInterrupt, SystemExit) as exc:  # TODO does not exit gracefully when using multiple workers
+        logger.info("Received exit signal", signal=exc.__class__.__name__)
+        job_scheduler.shutdown(wait=True)
+        logger.info("Scheduler gracefully shut down")
 
 
 if __name__ == "__main__":

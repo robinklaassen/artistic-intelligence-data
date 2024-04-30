@@ -11,6 +11,9 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from aid.provide.ns_trains import TrainRecord, NSTrainProvider
 
+# Target for uvicorn.run, update when moving this module!
+APP_MODULE = "aid.provide.api:app"
+
 description = """
 A data provider API to augment fine art with live data.
 
@@ -81,4 +84,4 @@ def get_train_locations_in_period(
 
 if __name__ == "__main__":
     load_dotenv()
-    uvicorn.run("aid.provide.api:app", workers=2)
+    uvicorn.run(APP_MODULE, workers=2)
