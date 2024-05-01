@@ -1,14 +1,13 @@
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 from psycopg.rows import class_row
+from pydantic import BaseModel
 
 from aid.logger import logger
 from aid.provide.base_provider import BaseProvider
 
 
-@dataclass
-class TrainRecord:
+class TrainRecord(BaseModel):
     timestamp: datetime
     id: int
     x: float

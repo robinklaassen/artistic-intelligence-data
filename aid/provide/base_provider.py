@@ -13,6 +13,7 @@ class BaseProvider(ABC):
     @property
     def _pg_conn(self) -> Connection:
         """Open and return a new connection to the Postgres database."""
+        # TODO handle connection failure gracefully
         return psycopg.connect(
             dbname=os.getenv("PG_DBNAME", "postgres"),
             user=os.getenv("PG_READ_USER", "postgres"),
