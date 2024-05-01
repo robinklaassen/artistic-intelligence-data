@@ -11,6 +11,9 @@ from starlette.status import HTTP_403_FORBIDDEN
 
 from aid.provide.ns_trains import TrainRecord, NSTrainProvider
 
+# Load the environment file to set API key and such
+load_dotenv()
+
 # Target for uvicorn.run, update when moving this module!
 APP_MODULE = "aid.provide.api:app"
 
@@ -70,7 +73,7 @@ def get_current_train_locations() -> list[TrainRecord]:
 
 @app.get("/trains/period", tags=["trains"])
 def get_train_locations_in_period(
-    start: datetime, end: datetime | None = None, api_key: APIKey = Depends(get_api_key)
+        start: datetime, end: datetime | None = None, api_key: APIKey = Depends(get_api_key)
 ) -> list[TrainRecord]:
     """
     Get the train locations for a specified period.
@@ -83,5 +86,4 @@ def get_train_locations_in_period(
 
 
 if __name__ == "__main__":
-    load_dotenv()
-    uvicorn.run(APP_MODULE, workers=2)
+    uvicorn.run(APP_MODULE)

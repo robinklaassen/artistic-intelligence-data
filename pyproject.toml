@@ -13,6 +13,7 @@ packages = [{include = "aid"}]
 python = "^3.12"
 APScheduler = "^3.10.4"
 fastapi = "*"
+gunicorn = "*"
 psycopg = {extras = ["binary"], version = "^3.1.18"}
 pydantic = "^2.7.0"
 python-dotenv = "^1.0.1"
@@ -32,6 +33,7 @@ scons = "^4.7.0"
 types-requests = "^2.31.0.20240406"
 
 [tool.poetry.scripts]
+aid-collect = "aid.collect.scheduler:main"
 artistic-intelligence-data = "aid.main:main"
 
 [build-system]

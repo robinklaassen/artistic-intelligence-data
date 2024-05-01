@@ -1,8 +1,12 @@
+import signal
+import sys
+
 from apscheduler.schedulers.base import BaseScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from aid.collect import ALL_COLLECTORS
+from aid.logger import logger
 
 
 def construct_scheduler(
@@ -17,5 +21,19 @@ def construct_scheduler(
     return scheduler
 
 
+def main():
+    """Run the scheduled collection standalone."""
+    job_scheduler = construct_scheduler(BlockingScheduler)
+    signal.signal(signal.SIGTERM, lambda sig, frame: sys.exit())  # sys.exit() raises SystemExit which is caught below
+
+    try:
+        logger.info("Starting scheduler", type=job_scheduler.__class__.__name__)
+        job_scheduler.start()
+    except (KeyboardInterrupt, SystemExit) as exc:
+        logger.info("Received exit signal", signal=exc.__class__.__name__)
+        job_scheduler.shutdown(wait=True)
+        logger.info("Scheduler gracefully shut down")
+
+
 if __name__ == "__main__":
-    construct_scheduler().start()
+    main()

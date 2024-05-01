@@ -1,4 +1,3 @@
-import logging
 import os
 import signal
 import sys
@@ -8,15 +7,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
 from aid.collect.scheduler import construct_scheduler
-from aid.logger import logger, LOG_DATE_FORMAT
+from aid.logger import logger
 from aid.provide.api import APP_MODULE
-
-logging.basicConfig(
-    stream=sys.stdout,
-    format="%(asctime)s [%(levelname)-9s] %(message)s",  # aligns with structlog
-    datefmt=LOG_DATE_FORMAT,
-    level=logging.WARNING,
-)
 
 
 def main():

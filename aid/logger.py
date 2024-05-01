@@ -1,7 +1,20 @@
+"""
+I like structlog! But I still run logging.basicConfig to align logs from other packages.
+"""
+
 import logging
+import sys
+
 import structlog
 
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+logging.basicConfig(
+    stream=sys.stdout,
+    format="%(asctime)s [%(levelname)-9s] %(message)s",  # aligns with structlog
+    datefmt=LOG_DATE_FORMAT,
+    level=logging.WARNING,
+)
 
 structlog.configure(
     processors=[
