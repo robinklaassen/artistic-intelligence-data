@@ -1,15 +1,9 @@
-import os
-from datetime import datetime, timedelta
-
 import uvicorn
 from dotenv import load_dotenv
-from fastapi import FastAPI, Security, HTTPException, Depends
+from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.openapi.models import APIKey
-from fastapi.security import APIKeyHeader
-from starlette.status import HTTP_403_FORBIDDEN
 
-from aid.provide.ns_trains import TrainRecord, NSTrainProvider
+from aid.provide.routers import trains
 
 # Load the environment file to set API key and such
 load_dotenv()
@@ -51,38 +45,8 @@ app = FastAPI(
 
 app.add_middleware(GZipMiddleware, minimum_size=10_000)  # minimum size in bytes
 
-api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
-
-def get_api_key(resolved_header: str = Security(api_key_header)) -> str:
-    if resolved_header == os.getenv("API_KEY"):
-        return resolved_header
-    else:
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="API key missing or invalid")
-
-
-@app.get("/trains/current", tags=["trains"])
-def get_current_train_locations() -> list[TrainRecord]:
-    """
-    Get current train locations (last 10 seconds).
-    """
-    end = datetime.now()
-    start = end - timedelta(seconds=10)
-    return NSTrainProvider().get_trains(start, end)
-
-
-@app.get("/trains/period", tags=["trains"])
-def get_train_locations_in_period(
-        start: datetime, end: datetime | None = None, api_key: APIKey = Depends(get_api_key)
-) -> list[TrainRecord]:
-    """
-    Get the train locations for a specified period.
-
-    - **start**: start of the requested period (timestamp, required)
-    - **end**: end of the requested period (timestamp, defaults to current time)
-    """
-    end = end or datetime.now()
-    return NSTrainProvider().get_trains(start, end)
+app.include_router(trains.router)
 
 
 if __name__ == "__main__":
