@@ -53,4 +53,5 @@ jobs:
             cd ${{ secrets.SSH_WORKDIR }}
             git pull origin main
             poetry install
-            systemctl --user restart artistic-intelligence-data
+            systemctl --user restart aid-collect
+            systemctl --user restart aid-provide
