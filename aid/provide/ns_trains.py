@@ -36,6 +36,18 @@ class NSTrainProvider(BaseProvider):
 
         return results
 
+    def get_current_count(self) -> int:
+        query = """
+        select count(*) as cnt
+        from raw.ns_trains
+        where timestamp between (now() - '10 seconds'::interval) and now()
+        """
+        with self._pg_conn as conn:
+            with conn.cursor() as cur:
+                result: int = cur.execute(query).fetchone()[0]  # type: ignore
+
+        return result
+
 
 if __name__ == "__main__":
     now = datetime.now()

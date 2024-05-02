@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
 from aid.provide.routers import trains
+from aid.provide.routers import datamon
 
 # Load the environment file to set API key and such
 load_dotenv()
@@ -28,7 +29,8 @@ tags_metadata = [
     {
         "name": "trains",
         "description": "Train locations every 10 seconds from the NS VirtualTrain API.",
-    }
+    },
+    {"name": "datamon", "description": "Monitor incoming data streams."},
 ]
 
 app = FastAPI(
@@ -47,7 +49,7 @@ app.add_middleware(GZipMiddleware, minimum_size=10_000)  # minimum size in bytes
 
 
 app.include_router(trains.router)
-
+app.include_router(datamon.router)
 
 if __name__ == "__main__":
     uvicorn.run(APP_MODULE)

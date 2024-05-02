@@ -41,7 +41,7 @@ def get_records(start: datetime | None = None, end: datetime | None = None) -> l
 
 
 @router.get("/keyed")
-def get_keyed_records(start: datetime | None = None, end: datetime | None = None) -> KeyedTrainLocations:
+def get_records_keyed_by_timestamp(start: datetime | None = None, end: datetime | None = None) -> KeyedTrainLocations:
     """
     Get train locations for the requested period as record sets keyed by timestamp.
 
