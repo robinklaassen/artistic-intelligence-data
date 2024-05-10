@@ -19,16 +19,11 @@ class TrainRecord(BaseModel):
 
 class NSTrainProvider(BaseProvider):
     def get_trains(self, start: datetime, end: datetime) -> list[TrainRecord]:
-        # TODO this could be view in postgres
-        # TODO optional gap filling
         query = """
-        select time_bucket('10 seconds', timestamp, '-5 seconds'::INTERVAL) + '5 seconds' as timestamp, rit_id as id, 
-            avg(st_x(st_transform(location, 28992))) as x, avg(st_y(st_transform(location, 28992))) as y,
-            avg(snelheid) as speed, avg(richting) as direction, avg(horizontale_nauwkeurigheid) as accuracy
-        from raw.ns_trains
+        select timestamp, id, round(x) as x, round(y) as y, speed, direction, accuracy
+        from std.trains
         where timestamp between %s and %s
-        group by timestamp, rit_id
-        order by timestamp asc, rit_id asc
+        order by timestamp asc, id asc
         """
         with self._pg_conn as conn:
             with conn.cursor(row_factory=class_row(TrainRecord)) as cur:
