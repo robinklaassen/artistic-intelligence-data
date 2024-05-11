@@ -10,8 +10,8 @@ from aid.provide.base_provider import BaseProvider
 class TrainRecord(BaseModel):
     timestamp: datetime
     id: int
-    x: float
-    y: float
+    x: int
+    y: int
     speed: float
     direction: float
     accuracy: float

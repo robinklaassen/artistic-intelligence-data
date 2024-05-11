@@ -14,6 +14,11 @@ def construct_scheduler(
 ) -> BaseScheduler:
     """Construct a scheduler using the provided class. Recommended either BlockingScheduler or BackgroundScheduler."""
     scheduler = scheduler_cls()
+
+    # Graceful shutdown happens only on next job run
+    # Add an empty job every second to prevent unnecessary waiting
+    scheduler.add_job(lambda: None, CronTrigger(second="*"))
+
     for collector_cls in ALL_COLLECTORS:
         collector = collector_cls()
         scheduler.add_job(collector.run, CronTrigger(second=f"*/{collector.interval_seconds}"))
