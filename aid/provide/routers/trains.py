@@ -69,7 +69,7 @@ def get_records_keyed_by_timestamp(start: datetime | None = None, end: datetime 
 @router.get("/pivoted", response_class=CSVResponse)
 def get_pivoted_data(start: datetime | None = None, end: datetime | None = None):
     """
-    Get train locations pivoted for use in touch designer.
+    Get train locations pivoted for use in TouchDesigner.
     Start and end parameters work the same as in `/records`.
     """
     records = _records(start, end)
@@ -78,20 +78,21 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
         return status.HTTP_204_NO_CONTENT
 
     df = pd.DataFrame.from_records([rec.model_dump() for rec in records])
-    # df["speed"] = df["speed"].astype(int)
+
+    # Scale x and y to [-1,1] by RDS ranges
+    df["x"] = 2 * (df["x"] / 280_000) - 1
+    df["y"] = 2 * (df["y"] - 300_000) / (625_000 - 300_000) - 1
+    df = df.round(4)
+
+    # Pivot to requested format
     df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed"], var_name="var")
     df = df.pivot(columns="id", index=["timestamp", "var"], values="value")
     df = df.reset_index()
     df["timestamp"] = df["timestamp"].dt.strftime("%H:%M:%S")
-
-    # TODO cast floats to ints
-    # id_cols = [col for col in df.columns if col not in {"timestamp", "var"}]
-    # df[id_cols] = df[id_cols].astype("Int64")
-    # print(df.dtypes)
 
     return df.to_csv(index=False)
 
 
 if __name__ == "__main__":
     start = datetime.now() - timedelta(minutes=1)
-    get_pivoted_data(start=start)
+    print(get_pivoted_data(start=start))
