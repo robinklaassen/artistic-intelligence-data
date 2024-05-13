@@ -79,10 +79,13 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
 
     df = pd.DataFrame.from_records([rec.model_dump() for rec in records])
 
-    # Scale x and y to [-1,1] by RDS ranges
-    df["x"] = 2 * (df["x"] / 280_000) - 1
-    df["y"] = 2 * (df["y"] - 300_000) / (625_000 - 300_000) - 1
-    df = df.round(4)
+    # Scale x and y to a [-1,1] square area
+    # RDS range is 0 < x 280 and 300 < y < 625 (km)
+    # Center Amersfoort (155, 463) to (0, 0)
+    df["x"] = (df["x"] - 155_000) / (325_000 / 2)
+    df["y"] = (df["y"] - 463_000) / (325_000 / 2)
+
+    df = df.round(5)
 
     # Pivot to requested format
     df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed"], var_name="var")
