@@ -18,6 +18,11 @@ class TrainRecord(BaseModel):
     type: str
 
 
+class TrainType(BaseModel):
+    id: int
+    type: str
+
+
 class NSTrainProvider(BaseProvider):
     def get_trains(self, start: datetime, end: datetime) -> list[TrainRecord]:
         query = """
@@ -28,6 +33,19 @@ class NSTrainProvider(BaseProvider):
         """
         with self._pg_conn as conn:
             with conn.cursor(row_factory=class_row(TrainRecord)) as cur:
+                results = cur.execute(query, (start, end)).fetchall()
+
+        return results
+
+    def get_train_types(self, start: datetime, end: datetime) -> list[TrainType]:
+        query = """
+        select id, type
+        from std.trains
+        where timestamp between %s and %s
+        order by id asc
+        """
+        with self._pg_conn as conn:
+            with conn.cursor(row_factory=class_row(TrainType)) as cur:
                 results = cur.execute(query, (start, end)).fetchall()
 
         return results

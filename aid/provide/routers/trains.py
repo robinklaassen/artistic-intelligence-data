@@ -7,7 +7,7 @@ from fastapi import APIRouter, Security, status
 from pydantic import BaseModel
 
 from aid.provide.dependencies import get_api_key
-from aid.provide.ns_trains import TrainRecord, NSTrainProvider
+from aid.provide.ns_trains import TrainRecord, NSTrainProvider, TrainType
 from aid.provide.response import CSVResponse
 
 router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(get_api_key)])
@@ -94,6 +94,16 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
     df["timestamp"] = df["timestamp"].dt.strftime("%H:%M:%S")
 
     return df.to_csv(index=False)
+
+
+@router.get("/types")
+def get_train_types(start: datetime | None = None, end: datetime | None = None) -> list[TrainType]:
+    """
+    Get train types for the requested period.
+    """
+    end = end or datetime.now()
+    start = start or end - timedelta(seconds=10)
+    return NSTrainProvider().get_train_types(start, end)
 
 
 if __name__ == "__main__":
