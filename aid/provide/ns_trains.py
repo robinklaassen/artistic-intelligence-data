@@ -39,7 +39,7 @@ class NSTrainProvider(BaseProvider):
 
     def get_train_types(self, start: datetime, end: datetime) -> list[TrainType]:
         query = """
-        select id, type
+        select distinct id, type
         from std.trains
         where timestamp between %s and %s
         order by id asc
