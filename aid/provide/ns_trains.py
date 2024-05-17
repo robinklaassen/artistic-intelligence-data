@@ -15,12 +15,13 @@ class TrainRecord(BaseModel):
     speed: float
     direction: float
     accuracy: float
+    type: str
 
 
 class NSTrainProvider(BaseProvider):
     def get_trains(self, start: datetime, end: datetime) -> list[TrainRecord]:
         query = """
-        select timestamp, id, round(x) as x, round(y) as y, speed, direction, accuracy
+        select timestamp, id, round(x) as x, round(y) as y, speed, direction, accuracy, type
         from std.trains
         where timestamp between %s and %s
         order by timestamp asc, id asc

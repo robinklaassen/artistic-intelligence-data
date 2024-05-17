@@ -88,7 +88,7 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
     df = df.round(5)
 
     # Pivot to requested format
-    df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed"], var_name="var")
+    df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed", "type"], var_name="var")
     df = df.pivot(columns="id", index=["timestamp", "var"], values="value")
     df = df.reset_index()
     df["timestamp"] = df["timestamp"].dt.strftime("%H:%M:%S")
