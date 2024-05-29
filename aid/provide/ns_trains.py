@@ -29,6 +29,7 @@ class NSTrainProvider(BaseProvider):
         select timestamp, id, round(x) as x, round(y) as y, speed, direction, accuracy, type
         from std.trains
         where timestamp between %s and %s
+        and x > 0 and y > 0
         order by timestamp asc, id asc
         """
         with self._pg_conn as conn:
