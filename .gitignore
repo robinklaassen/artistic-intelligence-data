@@ -161,3 +161,7 @@ cython_debug/
 
 # Sandbox folder
 sandbox/
+
+# Notebook data and output
+notebooks/data/
+notebooks/output/
