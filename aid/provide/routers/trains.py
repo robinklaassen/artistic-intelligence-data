@@ -5,6 +5,7 @@ from typing import TypeAlias
 import pandas as pd
 from fastapi import APIRouter, Security, status
 from pydantic import BaseModel
+from starlette.responses import Response
 
 from aid.provide.dependencies import get_api_key
 from aid.provide.ns_trains import TrainRecord, NSTrainProvider
@@ -67,7 +68,7 @@ def get_records_keyed_by_timestamp(start: datetime | None = None, end: datetime 
 
 
 @router.get("/pivoted", response_class=CSVResponse)
-def get_pivoted_data(start: datetime | None = None, end: datetime | None = None):
+def get_pivoted_data(start: datetime | None = None, end: datetime | None = None) -> str:
     """
     Get train locations pivoted for use in TouchDesigner.
     Start and end parameters work the same as in `/records`.
@@ -75,7 +76,7 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
     records = _records(start, end)
     if not records:
         print("No records")
-        return status.HTTP_204_NO_CONTENT
+        return Response(status_code=status.HTTP_204_NO_CONTENT)  # type: ignore
 
     df = pd.DataFrame.from_records([rec.model_dump() for rec in records])
 
@@ -88,11 +89,24 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
     df = df.round(5)
 
     # Pivot to requested format
-    df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed"], var_name="var")
+    df = df.melt(id_vars=["timestamp", "id"], value_vars=["x", "y", "speed", "type"], var_name="var")
     df = df.pivot(columns="id", index=["timestamp", "var"], values="value")
     df = df.reset_index()
     df["timestamp"] = df["timestamp"].dt.strftime("%H:%M:%S")
 
+    return df.to_csv(index=False)
+
+
+@router.get("/types", response_class=CSVResponse)
+def get_train_types(start: datetime | None = None, end: datetime | None = None) -> str:
+    """
+    Get train types for the requested period.
+    """
+    end = end or datetime.now()
+    start = start or end - timedelta(seconds=10)
+    records = NSTrainProvider().get_train_types(start, end)
+
+    df = pd.DataFrame.from_records([rec.model_dump() for rec in records])
     return df.to_csv(index=False)
 
 

@@ -8,6 +8,7 @@ from aid.collect.base_collector import BaseCollector
 from aid.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
+REQUEST_TIMEOUT: int = 5
 
 
 class TrainModel(BaseModel):
@@ -52,7 +53,7 @@ class NSTrainCollector(BaseCollector):
         response = requests.get(
             NS_VIRTUAL_TRAIN_URL,
             headers={"Ocp-Apim-Subscription-Key": self._api_key},
-            timeout=10,
+            timeout=REQUEST_TIMEOUT,
         )
 
         if not response.ok:

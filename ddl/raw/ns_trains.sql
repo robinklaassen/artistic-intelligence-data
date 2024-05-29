@@ -12,5 +12,5 @@ create table if not exists ns_trains (
 
 select addgeometrycolumn('ns_trains', 'location', 4326, 'POINT', 2);
 
-select create_hypertable('ns_trains', 'timestamp');
+select create_hypertable('ns_trains', by_range('timestamp', INTERVAL '1 day'));
 create index on	ns_trains(rit_id, timestamp desc);
