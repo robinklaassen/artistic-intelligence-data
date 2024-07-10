@@ -163,7 +163,7 @@ cython_debug/
 sandbox/
 
 # Scripts output
-scripts/output/
+scripts/**/output/
 
 # Notebook data and output
 notebooks/data/

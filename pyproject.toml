@@ -33,6 +33,17 @@ ruff = "^0.4.1"
 scons = "^4.7.0"
 types-requests = "^2.31.0.20240406"
 
+[tool.poetry.group.script]
+optional = true
+
+[tool.poetry.group.script.dependencies]
+jupyterlab = "*"
+matplotlib = "*"
+geopandas = "*"
+ipympl = "*"
+scipy = "*"
+streamlit = "*"
+
 [tool.poetry.scripts]
 aid-collect = "aid.collect.scheduler:main"
 artistic-intelligence-data = "aid.main:main"
