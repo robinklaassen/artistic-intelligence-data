@@ -8,7 +8,7 @@ from aid.collect.base_collector import BaseCollector
 from aid.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
-REQUEST_TIMEOUT: int = 5
+REQUEST_TIMEOUT: int = 4
 
 
 class TrainModel(BaseModel):
