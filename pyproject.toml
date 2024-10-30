@@ -38,7 +38,9 @@ optional = true
 
 [tool.poetry.group.script.dependencies]
 jupyterlab = "*"
+mapclassify = "*"
 matplotlib = "*"
+folium = "*"
 geopandas = "*"
 ipympl = "*"
 scipy = "*"

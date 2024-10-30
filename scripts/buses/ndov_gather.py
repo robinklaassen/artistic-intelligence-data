@@ -1,7 +1,7 @@
 # scratch pad for getting data via zeromq from NDOV
 
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 from gzip import GzipFile
 from io import BytesIO
 
@@ -12,8 +12,12 @@ import pandas as pd
 import zmq
 
 NAMESPACES = {
-    "": "http://bison.connekt.nl/tmi8/kv6/msg"  # default namespace for document
+    "": "http://bison.connekt.nl/tmi8/kv6/msg"  # default namespace for KV6 document
 }
+
+TRANSPORT_PROVIDER = "ARR"
+DURATION_MINUTES = 120
+VISUALIZE_ON_MAP = False
 
 
 def handle_xml(data: str) -> list[dict]:
@@ -40,23 +44,33 @@ def _element_value(element: ET.Element, path: str) -> str | None:
     return el.text if (el := element.find(path, NAMESPACES)) is not None else None
 
 
+def _create_map(df: pd.DataFrame):
+    df.dropna(inplace=True)  # errors are thrown on empty X/Y
+    gdf = gpd.GeoDataFrame(
+        df, geometry=geopandas.points_from_xy(df.x, df.y), crs="EPSG:28992"
+    )
+
+    return gdf.explore("journey_number", legend=True, tiles="cartodb positron")
+
+
 if __name__ == "__main__":
     context = zmq.Context()
 
     subscriber = context.socket(zmq.SUB)
     subscriber.connect("tcp://pubsub.besteffort.ndovloket.nl:7658")
-    subscriber.setsockopt_string(zmq.SUBSCRIBE, "/QBUZZ/KV6posinfo")
+    subscriber.setsockopt_string(zmq.SUBSCRIBE, f"/{TRANSPORT_PROVIDER}/KV6posinfo")
 
     output = []
     time_start = datetime.now()
+    time_end = time_start + timedelta(minutes=DURATION_MINUTES)
 
-    for _ in range(10_000):
+    while datetime.now() < time_end:
         multipart = subscriber.recv_multipart()
         address = multipart[0].decode("utf-8")
         contents = b''.join(multipart[1:])
         try:
             contents = GzipFile(None, 'r', 0, BytesIO(contents)).read().decode("utf-8")
-            print('GZIP', address, contents)
+            # print('GZIP', address, contents)
             records = handle_xml(contents)
             output.extend(records)
         except Exception:
@@ -70,13 +84,8 @@ if __name__ == "__main__":
 
     # save data to csv file
     df = pd.DataFrame.from_records(output)
-    df.to_csv("qbuzz.csv", index=False)
+    df.to_csv(f"{TRANSPORT_PROVIDER}.csv", index=False)
 
-    # do some geo magic
-    df.dropna(inplace=True)  # errors are thrown on empty X/Y
-    gdf = gpd.GeoDataFrame(
-        df, geometry=geopandas.points_from_xy(df.x, df.y), crs="EPSG:28992"
-    )
-
-    map = gdf.explore("journey_number", legend=True, tiles="cartodb positron")
-    map.save("qbuzz.html")
+    if VISUALIZE_ON_MAP:
+        map = _create_map(df)
+        map.save(f"{TRANSPORT_PROVIDER}.html")
