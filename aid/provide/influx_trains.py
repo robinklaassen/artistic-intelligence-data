@@ -26,13 +26,7 @@ class InfluxTrainProvider(BaseProvider):
         - truncateTimeColumn sounds nice but is ridiculously slow, insert rounded or use pandas
         """
 
-        if start.tzinfo is None:
-            logger.warning("Using default timezone for train start time")
-            start = start.replace(tzinfo=DEFAULT_TIMEZONE)
-
-        if end.tzinfo is None:
-            logger.warning("Using default timezone for train end time")
-            end = end.replace(tzinfo=DEFAULT_TIMEZONE)
+        start, end = self._validate_datetimes(start, end)
 
         query = f"""
         from(bucket: "{os.getenv("INFLUXDB_BUCKET")}")
@@ -89,6 +83,8 @@ class InfluxTrainProvider(BaseProvider):
         return output
 
     def get_train_types(self, start: datetime, end: datetime) -> list[TrainType]:
+        start, end = self._validate_datetimes(start, end)
+
         query = f"""
         from(bucket: "{os.getenv("INFLUXDB_BUCKET")}")
         |> range(start: {start.isoformat(timespec="seconds")}, stop: {end.isoformat(timespec="seconds")})
@@ -108,6 +104,17 @@ class InfluxTrainProvider(BaseProvider):
     def get_current_count(self) -> int:
         # TODO
         return 0
+
+    def _validate_datetimes(self, start: datetime, end: datetime) -> tuple[datetime, datetime]:
+        if start.tzinfo is None:
+            logger.warning("Using default timezone for trains start time")
+            start = start.replace(tzinfo=DEFAULT_TIMEZONE)
+
+        if end.tzinfo is None:
+            logger.warning("Using default timezone for trains end time")
+            end = end.replace(tzinfo=DEFAULT_TIMEZONE)
+
+        return start, end
 
 
 if __name__ == "__main__":
