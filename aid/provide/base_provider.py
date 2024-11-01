@@ -50,6 +50,6 @@ class BaseProvider(ABC):
         if buckets_api.find_bucket_by_name(bucket_name) is None:
             raise LookupError(f"Could not find InfluxDB bucket `{bucket_name}`.")
 
-        logger.info("InfluxDB client created successfully")
+        logger.debug("InfluxDB client created successfully")
 
         return client
