@@ -18,9 +18,9 @@ pd.options.display.max_columns = None
 class InfluxTrainProvider(BaseProvider):
     # TODO better name, changing from postgres to influx kind of on the fly now
 
-    def get_trains(self, start: datetime, end: datetime) -> list[TrainRecord]:
+    def get_trains(self, start: datetime, end: datetime) -> pd.DataFrame:
         """
-        Get train data from InfluxDB and return a list of pydantic records.
+        Get train data from InfluxDB as a data frame.
 
         Learnings:
         - truncateTimeColumn sounds nice but is ridiculously slow, insert rounded or use pandas
@@ -61,8 +61,13 @@ class InfluxTrainProvider(BaseProvider):
         time_geo_done = perf_counter()
         logger.debug("Time geo conversion done", duration=time_geo_done - time_rounding_done)
 
-        # print(gdf.to_dict("records"))
-        # TODO return the (geo)dataframe, to prevent needless conversion for pivoted_trains
+        return gdf
+
+    def get_trains_as_records(self, start: datetime, end: datetime) -> list[TrainRecord]:
+        """
+        Get train data from InfluxDB as a list of pydantic records.
+        """
+        gdf = self.get_trains(start, end)
 
         output = [
             TrainRecord(
@@ -77,8 +82,6 @@ class InfluxTrainProvider(BaseProvider):
             )
             for r in gdf.to_dict("records")  # TODO this could be quicker
         ]
-        time_format_done = perf_counter()
-        logger.debug("Format to list of records done", duration=time_format_done - time_geo_done)
 
         return output
 
