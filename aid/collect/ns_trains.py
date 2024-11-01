@@ -69,6 +69,8 @@ class NSTrainCollector(BaseCollector):
         values (%s, %s, %s, %s, %s, %s, %s, ST_MakePoint(%s, %s))
         """
 
+        # TODO test rounding timestamp here (use pandas series)
+
         params = [
             (
                 timestamp,

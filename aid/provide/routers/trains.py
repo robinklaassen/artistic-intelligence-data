@@ -1,5 +1,6 @@
 from collections import defaultdict
 from datetime import datetime, timedelta
+from time import perf_counter
 from typing import TypeAlias
 
 import pandas as pd
@@ -7,8 +8,11 @@ from fastapi import APIRouter, Security, status
 from pydantic import BaseModel
 from starlette.responses import Response
 
+from aid.constants import DEFAULT_TIMEZONE
+from aid.logger import logger
 from aid.provide.dependencies import get_api_key
-from aid.provide.ns_trains import TrainRecord, NSTrainProvider
+from aid.provide.influx_trains import InfluxTrainProvider
+from aid.provide.models import TrainRecord
 from aid.provide.response import CSVResponse
 
 router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(get_api_key)])
@@ -27,9 +31,9 @@ KeyedTrainLocations: TypeAlias = dict[datetime, list[TrainLocation]]
 
 
 def _records(start: datetime | None = None, end: datetime | None = None) -> list[TrainRecord]:
-    end = end or datetime.now()
+    end = end or datetime.now(DEFAULT_TIMEZONE)
     start = start or end - timedelta(seconds=10)
-    return NSTrainProvider().get_trains(start, end)
+    return InfluxTrainProvider().get_trains(start, end)
 
 
 @router.get("/records")
@@ -102,14 +106,18 @@ def get_train_types(start: datetime | None = None, end: datetime | None = None) 
     """
     Get train types for the requested period.
     """
-    end = end or datetime.now()
+    end = end or datetime.now(DEFAULT_TIMEZONE)
     start = start or end - timedelta(seconds=10)
-    records = NSTrainProvider().get_train_types(start, end)
+    records = InfluxTrainProvider().get_train_types(start, end)
 
     df = pd.DataFrame.from_records([rec.model_dump() for rec in records])
     return df.to_csv(index=False)
 
 
 if __name__ == "__main__":
-    start = datetime.now() - timedelta(minutes=1)
-    print(get_pivoted_data(start=start))
+    time_start = perf_counter()
+    start = datetime.now(DEFAULT_TIMEZONE) - timedelta(hours=3)
+    # data = get_pivoted_data(start=start)
+    data = get_train_types(start=start)
+    print(data)
+    logger.info("Local run done", duration=perf_counter() - time_start)
