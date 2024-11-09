@@ -2,16 +2,20 @@ import os
 from abc import ABC, abstractmethod
 from datetime import datetime
 
+import pandas as pd
 import psycopg
 from dotenv import load_dotenv
 from psycopg import Connection
 
+from aid.influxdb_client import get_influxdb_client_from_env
 from aid.logger import logger
 
 
 class BaseCollector(ABC):
     def __init__(self):
         load_dotenv(verbose=True)  # allows running individual collectors locally for testing
+        self._influx_client = get_influxdb_client_from_env()
+        self._influx_bucket = os.getenv("INFLUXDB_BUCKET", "")
 
     @property
     def _pg_conn(self) -> Connection:
@@ -49,3 +53,7 @@ class BaseCollector(ABC):
     def _execute(self, timestamp: datetime) -> int:
         """Execute the work specific to this collector. Return the amount of records processed."""
         raise NotImplementedError
+
+    @staticmethod
+    def _round_timestamp(timestamp: datetime, freq: str = "10s") -> datetime:
+        return pd.Timestamp(timestamp).round(freq).to_pydatetime()
