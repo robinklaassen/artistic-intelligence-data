@@ -7,6 +7,7 @@ import psycopg
 from dotenv import load_dotenv
 from psycopg import Connection
 
+from aid.constants import DEFAULT_TIMEZONE
 from aid.influxdb_client import get_influxdb_client_from_env
 from aid.logger import logger
 
@@ -36,7 +37,7 @@ class BaseCollector(ABC):
 
     def run(self):
         """Run this collector once."""
-        start_time = datetime.now()
+        start_time = datetime.now(tz=DEFAULT_TIMEZONE)
         try:
             record_count = self._execute(start_time)
         except Exception as exc:  # anything can happen
