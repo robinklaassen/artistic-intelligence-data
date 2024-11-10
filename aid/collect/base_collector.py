@@ -43,7 +43,7 @@ class BaseCollector(ABC):
         except Exception as exc:  # anything can happen
             logger.error(self.__class__.__name__, err_type=exc.__class__.__name__, msg=str(exc))
             return
-        duration_seconds = (datetime.now() - start_time).total_seconds()
+        duration_seconds = (datetime.now(tz=DEFAULT_TIMEZONE) - start_time).total_seconds()
         logger.info(
             self.__class__.__name__,
             record_count=record_count,
