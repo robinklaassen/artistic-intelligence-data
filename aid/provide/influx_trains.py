@@ -1,7 +1,6 @@
 import os
 from datetime import datetime, timedelta
 from time import perf_counter
-from zoneinfo import ZoneInfo
 
 import geopandas as gpd
 import pandas as pd
@@ -44,7 +43,7 @@ class InfluxTrainProvider(BaseProvider):
         time_start = perf_counter()
 
         query_api = self._influx_client.query_api()
-        df = query_api.query_data_frame(query=query)
+        df = query_api.query_data_frame(query=query, use_extension_dtypes=True)
 
         time_query_done = perf_counter()
         logger.debug("Influx query time", duration=time_query_done - time_start)
@@ -121,7 +120,7 @@ class InfluxTrainProvider(BaseProvider):
 
 
 if __name__ == "__main__":
-    now = datetime.now(tz=ZoneInfo("Europe/Amsterdam"))
+    now = datetime.now(tz=DEFAULT_TIMEZONE)
     prov = InfluxTrainProvider()
     time_start = perf_counter()
     # records = prov.get_trains(now - timedelta(hours=1), now)

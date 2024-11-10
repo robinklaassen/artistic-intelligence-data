@@ -7,6 +7,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from pydantic import BaseModel
 
 from aid.collect.base_collector import BaseCollector
+from aid.constants import WGS84_TO_RDNEW
 from aid.logger import logger
 
 NS_VIRTUAL_TRAIN_URL = "https://gateway.apiportal.ns.nl/virtual-train-api/api/vehicle"
@@ -40,8 +41,8 @@ class NSTrainCollector(BaseCollector):
 
     interval_seconds = 10
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._api_key = os.getenv("NS_API_KEY")
 
     def _execute(self, timestamp: datetime) -> int:
@@ -67,21 +68,27 @@ class NSTrainCollector(BaseCollector):
     def _store_trains(self, trains: TrainResponse, timestamp: datetime = datetime.now()):
         """Store train response into InfluxDB"""
 
-        # TODO convert to RDS and add both lat/lng and x/y here. Convert once, query a lot!
+        if self._influx_client is None:
+            logger.warning("No InfluxDB client available, skip storing trains")
+            return
 
-        points = [
-            Point("train_locations")
-            .time(self._round_timestamp(timestamp, freq="10s"))
-            .tag("train_id", t.ritId)
-            .tag("train_type", t.type)
-            .tag("source", t.bron)
-            .field("lat", t.lat)
-            .field("lng", t.lng)
-            .field("speed", t.snelheid)
-            .field("direction", t.richting)
-            .field("accuracy", t.horizontaleNauwkeurigheid)
-            for t in trains.payload.treinen
-        ]
+        points = []
+        for t in trains.payload.treinen:
+            x, y = WGS84_TO_RDNEW.transform(t.lng, t.lat)
+            points.append(
+                Point("train_locations")
+                .time(self._round_timestamp(timestamp, freq="10s"))
+                .tag("train_id", t.ritId)
+                .tag("train_type", t.type)
+                .tag("source", t.bron)
+                .field("lat", t.lat)
+                .field("lng", t.lng)
+                .field("x", x)
+                .field("y", y)
+                .field("speed", t.snelheid)
+                .field("direction", t.richting)
+                .field("accuracy", t.horizontaleNauwkeurigheid)
+            )
 
         with self._influx_client.write_api(write_options=SYNCHRONOUS) as write_api:
             write_api.write(bucket=self._influx_bucket, record=points)
@@ -117,8 +124,8 @@ class NSTrainCollector(BaseCollector):
 
 
 if __name__ == "__main__":
-    trains = NSTrainCollector()._get_trains()
+    trains = NSTrainCollector(with_influx=False)._get_trains()
     if trains is not None:
-        print(trains.payload.treinen[0])
-
-    NSTrainCollector().run()
+        train0 = [t for t in trains.payload.treinen if t.treinNummer == 8746]
+        print(train0[0])
+        # print(trains.payload.treinen)

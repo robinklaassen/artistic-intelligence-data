@@ -13,9 +13,9 @@ from aid.logger import logger
 
 
 class BaseCollector(ABC):
-    def __init__(self):
+    def __init__(self, with_influx: bool = True):
         load_dotenv(verbose=True)  # allows running individual collectors locally for testing
-        self._influx_client = get_influxdb_client_from_env()
+        self._influx_client = get_influxdb_client_from_env() if with_influx else None
         self._influx_bucket = os.getenv("INFLUXDB_BUCKET", "")
 
     @property
