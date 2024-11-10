@@ -74,7 +74,7 @@ class NSTrainCollector(BaseCollector):
 
         points = []
         for t in trains.payload.treinen:
-            x, y = WGS84_TO_RDNEW.transform(t.lng, t.lat)
+            x, y = WGS84_TO_RDNEW.transform(t.lat, t.lng)
             points.append(
                 Point("train_locations")
                 .time(self._round_timestamp(timestamp, freq="10s"))
