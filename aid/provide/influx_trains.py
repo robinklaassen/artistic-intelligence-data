@@ -17,7 +17,7 @@ pd.options.display.max_columns = None
 class InfluxTrainProvider(BaseProvider):
     # TODO better name, changing from postgres to influx kind of on the fly now
 
-    def get_trains(self, start: datetime, end: datetime) -> pd.DataFrame:
+    def get_trains(self, start: datetime, end: datetime) -> pd.DataFrame | None:
         """
         Get train data from InfluxDB as a data frame.
 
@@ -45,6 +45,9 @@ class InfluxTrainProvider(BaseProvider):
         query_api = self._influx_client.query_api()
         df = query_api.query_data_frame(query=query, use_extension_dtypes=True)
 
+        if df.empty:
+            return None
+
         time_query_done = perf_counter()
         logger.debug("Influx query time", duration=time_query_done - time_start)
 
@@ -67,6 +70,8 @@ class InfluxTrainProvider(BaseProvider):
         Get train data from InfluxDB as a list of pydantic records.
         """
         gdf = self.get_trains(start, end)
+        if gdf is None:
+            return []
 
         output = [
             TrainRecord(

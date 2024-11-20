@@ -4,7 +4,7 @@ from time import perf_counter
 from typing import TypeAlias
 
 import pandas as pd
-from fastapi import APIRouter, Security
+from fastapi import APIRouter, Security, HTTPException
 from pydantic import BaseModel
 
 from aid.constants import DEFAULT_TIMEZONE
@@ -79,6 +79,9 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
     end = end or datetime.now(DEFAULT_TIMEZONE)
     start = start or end - timedelta(seconds=10)
     df = InfluxTrainProvider().get_trains(start, end)
+    if df is None:
+        raise HTTPException(status_code=204)  # no content
+
     df = df.rename(
         columns={
             "_time": "timestamp",
