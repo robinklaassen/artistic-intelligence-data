@@ -4,13 +4,14 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
+from aid.scaling import scale_rd_to_touch
 from repo_path import REPO_PATH
 
 INPUT_FILE = REPO_PATH / "notebooks" / "data" / "20240114_015.csv"
 
 
 def general_prep(data: pd.DataFrame) -> pd.DataFrame:
-    data = data.dropna(axis="columns", how="all")
+    data.dropna(axis="columns", how="all", inplace=True)
 
     # add proper datetime column
     data["DATUMTIJD"] = pd.to_datetime(data["WAARNEMINGDATUM"] + " " + data["WAARNEMINGTIJD (MET/CET)"],
@@ -39,8 +40,7 @@ def create_locations(data: pd.DataFrame) -> gpd.GeoDataFrame:
     locations["X"] = locations.geometry.x
     locations["Y"] = locations.geometry.y
 
-    locations["SCALED_X"] = (locations.geometry.x - 155_000) / (325_000 / 2)
-    locations["SCALED_Y"] = (locations.geometry.y - 463_000) / (325_000 / 2)
+    locations["SCALED_X"], locations["SCALED_Y"] = scale_rd_to_touch(locations.geometry.x, locations.geometry.y)
     locations = locations.round(5)
 
     return locations.drop(columns="geometry")

@@ -5,6 +5,8 @@ import geopandas as gpd
 import requests
 from dotenv import load_dotenv
 
+from aid.scaling import scale_rd_to_touch
+
 NS_STATION_URL = "https://gateway.apiportal.ns.nl/nsapp-stations/v2"
 REQUEST_TIMEOUT = 5  # seconds
 
@@ -33,8 +35,7 @@ def main():
     gdf = gdf.to_crs(epsg=28992)  # Rijksdriehoek
 
     # scale to spoorwegsymfonie CRS
-    gdf["x"] = (gdf.geometry.x - 155_000) / (325_000 / 2)
-    gdf["y"] = (gdf.geometry.y - 463_000) / (325_000 / 2)
+    gdf["x"], gdf["y"] = scale_rd_to_touch(gdf.geometry.x, gdf.geometry.y)
     gdf = gdf.round(5)
 
     # print(gdf.head())

@@ -13,6 +13,7 @@ from aid.provide.dependencies import get_api_key
 from aid.provide.influx_trains import InfluxTrainProvider
 from aid.provide.models import TrainRecord
 from aid.provide.response import CSVResponse
+from aid.scaling import scale_rd_to_touch
 
 router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(get_api_key)])
 
@@ -90,12 +91,7 @@ def get_pivoted_data(start: datetime | None = None, end: datetime | None = None)
         }
     )
 
-    # Scale x and y to a [-1,1] square area
-    # RDS range is 0 < x 280 and 300 < y < 625 (km)
-    # Center Amersfoort (155, 463) to (0, 0)
-    df["x"] = (df["x"] - 155_000) / (325_000 / 2)
-    df["y"] = (df["y"] - 463_000) / (325_000 / 2)
-
+    df["x"], df["y"] = scale_rd_to_touch(df["x"], df["y"])
     df = df.round(5)
 
     # Pivot to requested format
