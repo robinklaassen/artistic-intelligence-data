@@ -14,12 +14,16 @@ from repo_path import REPO_PATH
 
 SCRIPTS_OUTPUT_PATH = REPO_PATH / "scripts" / "water" / "output"
 
-LOCATIONS_FILE = SCRIPTS_OUTPUT_PATH / "waterhoogtes_locaties.csv"
-# MEASUREMENTS_FILE = SCRIPTS_OUTPUT_PATH / "waterhoogtes_long.csv"
-MEASUREMENTS_FILE = REPO_PATH / "notebooks" / "output" / "waterhoogtes_long.csv"  # TODO these are normalized measurements
+BASE_NAME = "hoogwater"
+
+LOCATIONS_FILE = SCRIPTS_OUTPUT_PATH / f"{BASE_NAME}_locaties.csv"
+MEASUREMENTS_FILE = SCRIPTS_OUTPUT_PATH / f"{BASE_NAME}_long.csv"
 RIVER_LINES_FILE = REPO_PATH / "notebooks" / "data" / "rivierlijnen.zip"
 
-ENABLE_MULTIPROCESSING: bool = True
+LOCATIONS_OUTPUT = SCRIPTS_OUTPUT_PATH / f"{BASE_NAME}_river_locations.csv"
+MEASUREMENTS_OUTPUT = SCRIPTS_OUTPUT_PATH / f"{BASE_NAME}_river_measurements.csv"
+
+ENABLE_MULTIPROCESSING: bool = False
 
 
 def create_interpolated_measurements(locations: gpd.GeoDataFrame, measurements: pd.DataFrame,
@@ -43,6 +47,8 @@ def create_interpolated_measurements(locations: gpd.GeoDataFrame, measurements: 
     # assign measured values to columns
     for idx, code in location_code_by_index.items():
         values = measurements[measurements["LOCATIE_CODE"] == code].copy()
+        if len(values) == 0:
+            continue
         values = values.set_index("DATUMTIJD")["WAARDE_GESCHAALD"]
         int_measurements[idx] = values
 
@@ -80,7 +86,7 @@ if __name__ == "__main__":
     else:
         int_locations = [create_interpolated_locations(river_line) for river_line in river_lines.geometry]
 
-    pd.concat(int_locations).to_csv("output/river_locations.csv", index=False)
+    pd.concat(int_locations).to_csv(LOCATIONS_OUTPUT, index=False)
 
     if ENABLE_MULTIPROCESSING:
         with Pool(processes=8) as pool:
@@ -93,6 +99,6 @@ if __name__ == "__main__":
             create_interpolated_measurements(locations, measurements, river_line) for river_line in river_lines.geometry
         ]
 
-    pd.concat(int_measurements).to_csv("output/river_measurements.csv", index=False)
+    pd.concat(int_measurements).to_csv(MEASUREMENTS_OUTPUT, index=False)
 
     print("Done in seconds: ", perf_counter() - start_time)
