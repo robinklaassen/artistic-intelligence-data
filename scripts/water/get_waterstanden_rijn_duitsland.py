@@ -1,17 +1,19 @@
 from typing import Literal
 
-import requests
-
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
+import requests
 from geopandas import points_from_xy
 
 
 def get_measurement_points() -> gpd.GeoDataFrame:
-    response = requests.get(url="https://pegelonline-int.wsv.de/webservices/rest-api/v2/stations.json", params={
-        "waters": "RHEIN",
-        "prettyprint": "false",
-    })
+    response = requests.get(
+        url="https://pegelonline-int.wsv.de/webservices/rest-api/v2/stations.json",
+        params={
+            "waters": "RHEIN",
+            "prettyprint": "false",
+        },
+    )
     response.raise_for_status()
     data = response.json()
     print(f"Retrieved {len(data)} measurement points")
@@ -19,9 +21,7 @@ def get_measurement_points() -> gpd.GeoDataFrame:
     df = pd.DataFrame.from_records(data)
     df.dropna(subset=["longitude", "latitude"], how="any", inplace=True)
 
-    gdf = gpd.GeoDataFrame(
-        data=df, geometry=points_from_xy(df.longitude, df.latitude), crs="EPSG:4326"
-    )
+    gdf = gpd.GeoDataFrame(data=df, geometry=points_from_xy(df.longitude, df.latitude), crs="EPSG:4326")
     # gdf = gdf[["uuid", "longname", "km", "longitude", "latitude"]]
     print(gdf.head())
 
@@ -41,7 +41,7 @@ def get_measurements(uuids: list[str], meas_type: Literal["W", "Q", "WT"] = "W")
             params={
                 "start": "P7D",  # 7 days
                 "prettyprint": "false",
-            }
+            },
         )
         response.raise_for_status()
         data = response.json()

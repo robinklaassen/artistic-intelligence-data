@@ -4,8 +4,8 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-from aid.scaling import scale_rd_to_touch
 from repo_path import REPO_PATH
+from src.artistic_intelligence_data.scaling import scale_rd_to_touch
 
 INPUT_FILENAME = "20240114_015.csv"  # hoogwater rijn vorig jaar
 # INPUT_FILENAME = "20250329_011.csv"  # noordwaard
@@ -46,8 +46,9 @@ def create_locations(data: pd.DataFrame) -> gpd.GeoDataFrame:
     attr_cols = ["MEETPUNT_IDENTIFICATIE", "X", "Y"]
 
     locations = data.groupby(by=key_col)[attr_cols].first()
-    locations = gpd.GeoDataFrame(locations,
-                                 geometry=gpd.points_from_xy(locations["X"], locations["Y"], crs="EPSG:25831"))
+    locations = gpd.GeoDataFrame(
+        locations, geometry=gpd.points_from_xy(locations["X"], locations["Y"], crs="EPSG:25831")
+    )
 
     locations = locations.to_crs(epsg=28992)  # convert from ETRS to RD-new
     locations["X"] = locations.geometry.x
@@ -79,11 +80,11 @@ def create_measurements(data: pd.DataFrame) -> pd.DataFrame:
 
     # SCALING: normalize based on first X days of data
     normalize_number_of_days = 3
-    meas_first_days = meas[0:normalize_number_of_days*24*6]
+    meas_first_days = meas[0 : normalize_number_of_days * 24 * 6]
     mx = meas_first_days.max()
     mn = meas_first_days.min()
 
-    meas_norm = (meas-mn)/(mx-mn)
+    meas_norm = (meas - mn) / (mx - mn)
     meas_norm[meas_norm < 0] = 0  # avoid negative values, for touch
     meas_norm[meas_norm == np.inf] = np.nan
     meas_norm.dropna(axis="columns", how="any", inplace=True)
@@ -101,11 +102,7 @@ if __name__ == "__main__":
     data = general_prep(data)
 
     locations = create_locations(data)
-    locations.to_csv(
-        OUTPUT_LOCATIONS,
-        sep=",",
-        encoding="utf-8"
-    )
+    locations.to_csv(OUTPUT_LOCATIONS, sep=",", encoding="utf-8")
 
     measurements = create_measurements(data)
     measurements.to_csv(OUTPUT_DATA_LONG, sep=",", encoding="utf-8", index=False)

@@ -7,7 +7,6 @@ from io import BytesIO
 
 import geopandas
 import geopandas as gpd
-import numpy as np
 import pandas as pd
 import zmq
 
@@ -46,9 +45,7 @@ def _element_value(element: ET.Element, path: str) -> str | None:
 
 def _create_map(df: pd.DataFrame):
     df.dropna(inplace=True)  # errors are thrown on empty X/Y
-    gdf = gpd.GeoDataFrame(
-        df, geometry=geopandas.points_from_xy(df.x, df.y), crs="EPSG:28992"
-    )
+    gdf = gpd.GeoDataFrame(df, geometry=geopandas.points_from_xy(df.x, df.y), crs="EPSG:28992")
 
     return gdf.explore("journey_number", legend=True, tiles="cartodb positron")
 
@@ -67,14 +64,14 @@ if __name__ == "__main__":
     while datetime.now() < time_end:
         multipart = subscriber.recv_multipart()
         address = multipart[0].decode("utf-8")
-        contents = b''.join(multipart[1:])
+        contents = b"".join(multipart[1:])
         try:
-            contents = GzipFile(None, 'r', 0, BytesIO(contents)).read().decode("utf-8")
+            contents = GzipFile(None, "r", 0, BytesIO(contents)).read().decode("utf-8")
             # print('GZIP', address, contents)
             records = handle_xml(contents)
             output.extend(records)
         except Exception:
-            print('NOT ', address, contents)
+            print("NOT ", address, contents)
             raise
 
     subscriber.close()

@@ -9,8 +9,8 @@ from shapely.geometry.multipoint import MultiPoint
 from shapely.geometry.point import Point
 from shapely.ops import nearest_points
 
-from aid.scaling import scale_rd_to_touch
 from repo_path import REPO_PATH
+from src.artistic_intelligence_data.scaling import scale_rd_to_touch
 
 SCRIPTS_OUTPUT_PATH = REPO_PATH / "scripts" / "water" / "output"
 
@@ -26,8 +26,9 @@ MEASUREMENTS_OUTPUT = SCRIPTS_OUTPUT_PATH / f"{BASE_NAME}_river_measurements.csv
 ENABLE_MULTIPROCESSING: bool = False
 
 
-def create_interpolated_measurements(locations: gpd.GeoDataFrame, measurements: pd.DataFrame,
-                                     river_line: LineString) -> pd.DataFrame:
+def create_interpolated_measurements(
+    locations: gpd.GeoDataFrame, measurements: pd.DataFrame, river_line: LineString
+) -> pd.DataFrame:
     river_vertices = MultiPoint([Point(xy) for xy in river_line.coords])
     river_locations = locations[locations.distance(river_line) < 1000]
 
@@ -41,7 +42,7 @@ def create_interpolated_measurements(locations: gpd.GeoDataFrame, measurements: 
     # create empty dataframe with datetimes as index and river_vertices as columns
     datetime_range = measurements["DATUMTIJD"].unique()
     datetime_range.sort()
-    vertex_range = [i for i in range(len(river_vertices.geoms))]
+    vertex_range = list(range(len(river_vertices.geoms)))
     int_measurements = pd.DataFrame(np.nan, index=datetime_range, columns=vertex_range)
 
     # assign measured values to columns

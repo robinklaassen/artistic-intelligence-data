@@ -1,6 +1,6 @@
 import pytest
 
-from aid.constants import WGS84_TO_RDNEW
+from src.artistic_intelligence_data.constants import WGS84_TO_RDNEW
 
 
 class TestCRSTransform:

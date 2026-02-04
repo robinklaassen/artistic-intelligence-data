@@ -1,5 +1,5 @@
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 
 INPUT_FILE = "output/ARR.csv"
 TIME_ROUNDING_FREQ = "10s"
@@ -35,9 +35,7 @@ def main():
 
     if CREATE_MAP:
         # Create a map of the data
-        gdf = gpd.GeoDataFrame(
-            df, geometry=gpd.points_from_xy(df.x, df.y), crs="EPSG:28992"
-        )
+        gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.x, df.y), crs="EPSG:28992")
         print(gdf.head())
 
         map = gdf.explore("journey_number", legend=True, tiles="cartodb positron")

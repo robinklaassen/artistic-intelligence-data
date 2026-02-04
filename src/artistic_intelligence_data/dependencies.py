@@ -1,7 +1,7 @@
 import os
 from typing import Annotated
 
-from fastapi import Security, HTTPException
+from fastapi import HTTPException, Security
 from fastapi.security import APIKeyHeader
 from starlette.status import HTTP_403_FORBIDDEN
 

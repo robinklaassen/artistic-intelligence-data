@@ -3,14 +3,13 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.gzip import GZipMiddleware
 
-from aid.provide.routers import trains
-from aid.provide.routers import datamon
+from artistic_intelligence_data.routers import datamon, trains
 
 # Load the environment file to set API key and such
 load_dotenv()
 
 # Target for uvicorn.run, update when moving this module!
-APP_MODULE = "aid.provide.api:app"
+APP_MODULE = "artistic_intelligence_data.api:app"
 
 description = """
 A data provider API to augment fine art with live data.
@@ -45,7 +44,8 @@ app = FastAPI(
     redoc_url=None,
 )
 
-app.add_middleware(GZipMiddleware, minimum_size=10_000)  # minimum size in bytes
+# auto compress responses, size in bytes
+app.add_middleware(GZipMiddleware, minimum_size=10_000)  # type: ignore
 
 
 app.include_router(trains.router)

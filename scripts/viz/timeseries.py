@@ -4,8 +4,8 @@
 from pathlib import Path
 
 import numpy as np
-import streamlit as st
 import pandas as pd
+import streamlit as st
 
 
 @st.cache_data()

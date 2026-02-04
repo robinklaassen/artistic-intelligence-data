@@ -1,62 +1,83 @@
-[tool.poetry]
+[project]
 name = "artistic-intelligence-data"
 version = "0.1.0"
 description = "Data collector, query API and more to create digital art."
+readme = "README.md"
+authors = [
+    {name = "Robin Klaassen", email = "info@robinklaassen.com"},
+]
+license = {text = "GPL-3.0-or-later"}
+requires-python = "<4.0,>=3.12"
+dependencies = [
+#    "APScheduler",
+    "connectorx",
+    "fastapi[standard]",
+    "geopandas",  # TODO move to scripting dependency
+#    "gunicorn",
+    "influxdb-client[ciso]",
+    "pandas",  # TODO remove from core in favor of polars
+    "polars",
+    "psycopg[binary]",  # TODO remove in favor of connectorx
+    "pyarrow",
+    "pydantic",
+    "python-dotenv",
+#    "requests",
+    "structlog",
+    "uvicorn[standard]",
+]
+
+[project.urls]
 homepage = "https://artisticintelligence.nl"
 repository = "https://github.com/robinklaassen/artistic-intelligence-data"
-authors = ["Robin Klaassen <info@robinklaassen.com>"]
-license = "GPL-3.0-or-later"
-readme = "README.md"
-packages = [{include = "aid"}]
-
-[tool.poetry.dependencies]
-python = "^3.12"
-APScheduler = "^3.10.4"
-fastapi = "*"
-geopandas = "*"
-gunicorn = "*"
-influxdb-client = {extras = ["ciso"], version = "*"}
-pandas = "^2.2.2"
-psycopg = {extras = ["binary"], version = "^3.1.18"}
-pydantic = "^2.7.0"
-python-dotenv = "^1.0.1"
-requests = "^2.31.0"
-structlog = "^24.1.0"
-uvicorn = {extras = ["standard"], version = "*"}
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-bandit = "^1.7.8"
-mypy = "^1.9.0"
-pytest = "^8.1.1"
-ruff = "^0.4.1"
-scons = "^4.7.0"
-types-requests = "^2.31.0.20240406"
-
-[tool.poetry.group.script]
-optional = true
-
-[tool.poetry.group.script.dependencies]
-jupyterlab = "*"
-mapclassify = "*"
-matplotlib = "*"
-folium = "*"
-ipympl = "*"
-scipy = "*"
-streamlit = "*"
-
-[tool.poetry.scripts]
-aid-collect = "aid.collect.scheduler:main"
-artistic-intelligence-data = "aid.main:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[tool.poe.tasks]
+lint = "ruff check"
+lint-fix = "ruff check --fix"
+format = "ruff format --check"
+format-fix = "ruff format"
+type = "ty check"
+test = "pytest tests"
+sec = "bandit -r src"
+all = ["lint-fix", "format-fix", "type", "test", "sec"]
 
 [tool.ruff]
+extend-exclude = ["*.ipynb"]
 line-length = 120
 
-[tool.mypy]
-ignore_missing_imports = true
+[tool.ruff.lint]
+select = [
+    "E",
+    "F",
+    "UP",
+    "B",
+    "SIM",
+    "I",
+    "C",
+    "RUF",
+]
+
+[tool.ty.src]
+exclude = ["**/*.ipynb", "scripts/"]
+
+[dependency-groups]
+dev = [
+    "bandit",
+    "pytest",
+    "ruff",
+    "ty",
+    "types-requests",
+    "pandas-stubs",
+]
+script = [
+    "jupyterlab",
+    "mapclassify",
+    "matplotlib",
+    "folium",
+    "ipympl",
+    "scipy",
+    "streamlit",
+]

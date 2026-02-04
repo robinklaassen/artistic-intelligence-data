@@ -1,11 +1,11 @@
 import os
 
-import pandas as pd
 import geopandas as gpd
+import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from aid.scaling import scale_rd_to_touch
+from src.artistic_intelligence_data.scaling import scale_rd_to_touch
 
 NS_STATION_URL = "https://gateway.apiportal.ns.nl/nsapp-stations/v2"
 REQUEST_TIMEOUT = 5  # seconds
@@ -19,10 +19,11 @@ def main():
     pd.options.display.max_columns = None
     pd.options.display.max_rows = 20
 
-    response = requests.get(NS_STATION_URL,
-                            headers={"Ocp-Apim-Subscription-Key": os.getenv("NS_API_KEY")},
-                            timeout=REQUEST_TIMEOUT,
-                            )
+    response = requests.get(
+        NS_STATION_URL,
+        headers={"Ocp-Apim-Subscription-Key": os.getenv("NS_API_KEY")},
+        timeout=REQUEST_TIMEOUT,
+    )
     records = response.json()["payload"]
     print(f"Got {len(records)} station records from API")
 
@@ -40,10 +41,9 @@ def main():
 
     # print(gdf.head())
 
-    gdf[["code", "naam_lang", "land", "stationType", "x", "y", "radius", "naderenRadius"]].to_csv("output/stations.csv",
-                                                                                                  sep=",",
-                                                                                                  encoding="utf-8",
-                                                                                                  index=False)
+    gdf[["code", "naam_lang", "land", "stationType", "x", "y", "radius", "naderenRadius"]].to_csv(
+        "output/stations.csv", sep=",", encoding="utf-8", index=False
+    )
 
 
 if __name__ == "__main__":
