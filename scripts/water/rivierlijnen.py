@@ -10,7 +10,7 @@ from shapely.geometry.point import Point
 from shapely.ops import nearest_points
 
 from repo_path import REPO_PATH
-from src.artistic_intelligence_data.scaling import scale_rd_to_touch
+from scripts.scaling import scale_rd_to_touch
 
 SCRIPTS_OUTPUT_PATH = REPO_PATH / "scripts" / "water" / "output"
 

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from time import perf_counter
 
+import polars as pl
 from fastapi import APIRouter, Security
 
 from artistic_intelligence_data.dependencies import get_api_key
@@ -83,8 +84,12 @@ def get_locations_pivoted(start: datetime | None = None, end: datetime | None = 
     """
     provider = QuestDBTrainProvider()
     pivoted_locations = provider.get_locations_torbenized(start, end)
-    # TODO convert timestamp to time in local tz here
-    return pivoted_locations.write_csv()
+    return pivoted_locations.with_columns(
+        pl.col("timestamp")
+        .dt.replace_time_zone("UTC")
+        .dt.convert_time_zone("Europe/Amsterdam")
+        .dt.strftime("%H:%M:%S"),
+    ).write_csv()
 
 
 @router.get("/types", response_class=CSVResponse)

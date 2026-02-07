@@ -5,7 +5,7 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from src.artistic_intelligence_data.scaling import scale_rd_to_touch
+from scripts.scaling import scale_rd_to_touch
 
 NS_STATION_URL = "https://gateway.apiportal.ns.nl/nsapp-stations/v2"
 REQUEST_TIMEOUT = 5  # seconds

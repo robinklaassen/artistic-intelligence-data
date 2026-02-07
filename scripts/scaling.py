@@ -2,7 +2,6 @@
 import pandas as pd
 
 
-# TODO move to scripts folder
 def scale_rd_to_touch[T: int | pd.Series](x: T, y: T) -> tuple[T, T]:
     """
     Scale RD coordinates to a (-1, 1) grid for use in TouchDesigner.

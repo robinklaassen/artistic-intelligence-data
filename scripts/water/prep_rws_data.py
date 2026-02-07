@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from repo_path import REPO_PATH
-from src.artistic_intelligence_data.scaling import scale_rd_to_touch
+from scripts.scaling import scale_rd_to_touch
 
 INPUT_FILENAME = "20240114_015.csv"  # hoogwater rijn vorig jaar
 # INPUT_FILENAME = "20250329_011.csv"  # noordwaard
