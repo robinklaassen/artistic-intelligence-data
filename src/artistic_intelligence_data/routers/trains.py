@@ -4,7 +4,7 @@ from time import perf_counter
 import polars as pl
 from fastapi import APIRouter, Security
 
-from artistic_intelligence_data.dependencies import get_api_key
+from artistic_intelligence_data.dependencies import verify_api_key
 from artistic_intelligence_data.models import TrainRecord
 from artistic_intelligence_data.response import CSVResponse
 from artistic_intelligence_data.trains.questdb_train_provider import QuestDBTrainProvider
@@ -12,7 +12,7 @@ from src.artistic_intelligence_data.constants import DEFAULT_TIMEZONE
 from src.artistic_intelligence_data.logger import logger
 
 # TODO can I inject an instance of QuestDBTrainProvider to all routes?
-router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(get_api_key)])
+router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(verify_api_key)])
 
 
 # class TrainLocation(BaseModel):
