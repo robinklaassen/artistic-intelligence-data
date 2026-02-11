@@ -85,10 +85,7 @@ def get_locations_pivoted(start: datetime | None = None, end: datetime | None = 
     provider = QuestDBTrainProvider()
     pivoted_locations = provider.get_locations_torbenized(start, end)
     return pivoted_locations.with_columns(
-        pl.col("timestamp")
-        .dt.replace_time_zone("UTC")
-        .dt.convert_time_zone("Europe/Amsterdam")
-        .dt.strftime("%H:%M:%S"),
+        pl.col("timestamp").dt.strftime("%H:%M:%S"),
     ).write_csv()
 
 

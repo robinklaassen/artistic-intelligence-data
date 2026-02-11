@@ -6,6 +6,7 @@ import logging
 import sys
 
 import structlog
+from structlog.stdlib import BoundLogger
 
 LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
@@ -29,3 +30,7 @@ structlog.configure(
 )
 
 logger = structlog.get_logger()
+
+
+def get_logger(name: str) -> BoundLogger:
+    return structlog.get_logger(name)

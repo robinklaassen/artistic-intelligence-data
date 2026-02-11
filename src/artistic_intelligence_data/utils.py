@@ -3,9 +3,9 @@ from datetime import datetime, timedelta
 from artistic_intelligence_data.constants import DEFAULT_TIMEZONE
 
 
-def _validate_start_end(start: datetime | None = None, end: datetime | None = None) -> tuple[datetime, datetime]:
+def validate_start_end(start: datetime | None = None, end: datetime | None = None) -> tuple[datetime, datetime]:
     """
-    Validate a time range, providing defaults if necessary.
+    Validate a time range usually provided as API params, providing defaults if necessary.
     """
     now = datetime.now(tz=DEFAULT_TIMEZONE)
     start = start or now - timedelta(minutes=1)
