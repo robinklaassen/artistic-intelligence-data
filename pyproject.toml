@@ -42,7 +42,7 @@ format-fix = "ruff format"
 type = "ty check"
 test = "pytest tests"
 sec = "bandit -r src"
-all = ["lint-fix", "format-fix", "type", "test", "sec"]
+all = ["format-fix", "lint-fix", "type", "test", "sec"]
 
 [tool.ruff]
 extend-exclude = ["*.ipynb"]

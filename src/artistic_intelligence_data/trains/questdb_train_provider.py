@@ -53,14 +53,18 @@ class QuestDBTrainProvider:
         """  # nosec
 
         result = pl.read_database_uri(query=query, uri=self._qdb_uri)
-        if select != "*" and "timestamp" not in select:
-            return result
 
-        return result.with_columns(
-            timestamp=pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
-        ).filter(
-            pl.col("timestamp") >= start,  # filter for corrupted data in questdb that is somehow at epoch
-        )
+        if "train_id" in result.columns:
+            result = result.filter(pl.col("train_id") != "")  # somehow questdb filtering is not working fully
+
+        if "timestamp" in result.columns:
+            result = result.with_columns(
+                timestamp=pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
+            ).filter(
+                pl.col("timestamp") >= start,  # filter for corrupted data in questdb that is somehow at epoch
+            )
+
+        return result
 
     def get_train_locations(self, start: datetime | None = None, end: datetime | None = None) -> pl.DataFrame:
         """
@@ -84,8 +88,10 @@ class QuestDBTrainProvider:
         )
 
         time_retrieved = perf_counter()
-        _logger.debug(
-            "Retrieved data from QuestDB", record_count=locations.height, duration_seconds=time_retrieved - time_start
+        _logger.info(
+            "Retrieved data from QuestDB",
+            record_count=locations.height,
+            duration_seconds=round(time_retrieved - time_start, 3),
         )
 
         train_ids = locations.select("train_id").unique().to_series().to_list()
@@ -108,8 +114,10 @@ class QuestDBTrainProvider:
             pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
         )
         locations = locations.collect()
-        _logger.debug(
-            "Pivoted data to format", record_count=locations.height, duration_seconds=perf_counter() - time_retrieved
+        _logger.info(
+            "Pivoted data to format",
+            record_count=locations.height,
+            duration_seconds=round(perf_counter() - time_retrieved, 3),
         )
         return locations
 
