@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 from time import perf_counter
+from zoneinfo import ZoneInfo
 
 import polars as pl
 from dotenv import load_dotenv
@@ -58,10 +59,12 @@ class QuestDBTrainProvider:
             result = result.filter(pl.col("train_id") != "")  # somehow questdb filtering is not working fully
 
         if "timestamp" in result.columns:
+            # filter for corrupted data in questdb that is somehow at epoch
+            result = result.filter(pl.col("timestamp") >= start.astimezone(ZoneInfo("UTC")))
+
+            # convert resulting timestamps to local time
             result = result.with_columns(
                 timestamp=pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
-            ).filter(
-                pl.col("timestamp") >= start,  # filter for corrupted data in questdb that is somehow at epoch
             )
 
         return result
@@ -110,9 +113,6 @@ class QuestDBTrainProvider:
             on="train_id", on_columns=train_ids, index=["timestamp", "var"], values="value", aggregate_function="first"
         )
         locations = locations.sort(by=["timestamp", "var"])
-        locations = locations.with_columns(
-            pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
-        )
         locations = locations.collect()
         _logger.info(
             "Pivoted data to format",
