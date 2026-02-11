@@ -59,13 +59,13 @@ class QuestDBTrainProvider:
             result = result.filter(pl.col("train_id") != "")  # somehow questdb filtering is not working fully
 
         if "timestamp" in result.columns:
+            result = result.with_columns(timestamp=pl.col("timestamp").dt.replace_time_zone("UTC"))
+
             # filter for corrupted data in questdb that is somehow at epoch
             result = result.filter(pl.col("timestamp") >= start.astimezone(ZoneInfo("UTC")))
 
             # convert resulting timestamps to local time
-            result = result.with_columns(
-                timestamp=pl.col("timestamp").dt.replace_time_zone("UTC").dt.convert_time_zone("Europe/Amsterdam")
-            )
+            result = result.with_columns(timestamp=pl.col("timestamp").dt.convert_time_zone("Europe/Amsterdam"))
 
         return result
 
