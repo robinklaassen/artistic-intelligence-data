@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from time import perf_counter
 from zoneinfo import ZoneInfo
 
@@ -76,6 +76,53 @@ class QuestDBTrainProvider:
 
         return self._get_fields_from_db(start, end, order_by="timestamp, train_id")
 
+    def get_locations_pivoted(self, start: datetime | None = None, end: datetime | None = None) -> pl.DataFrame:
+        """
+        NEW VERSION OF THE TORBENIZER BUT AS A SQL QUERY YEAH BITCHES
+        """
+        start, end = validate_start_end(start, end)
+
+        # TODO add x/y scaling in query
+        query = f"""
+        with base as (
+            select timestamp, train_id, x, y, speed
+            from train_locations
+            where timestamp between '{start}' and '{end}'
+        ),
+        melted as (
+            select timestamp, train_id, 'x' as var, x as value
+            from base
+            where x is not null
+            union all
+            select timestamp, train_id, 'y' as var, y as value
+            from base
+            where y is not null
+            union all
+            select timestamp, train_id, 'speed' as var, speed as value
+            from base
+            where speed is not null
+        )
+        select * from melted
+        pivot (
+            first(value)
+            for train_id in (select distinct train_id from base)
+            group by timestamp, var
+        )
+        order by timestamp, var
+        """  # nosec
+
+        result = pl.read_database_uri(query=query, uri=self._qdb_uri)
+
+        result = result.with_columns(timestamp=pl.col("timestamp").dt.replace_time_zone("UTC"))
+
+        # filter for corrupted data in questdb that is somehow at epoch
+        result = result.filter(pl.col("timestamp") >= start.astimezone(ZoneInfo("UTC")))
+
+        # convert resulting timestamps to local time
+        result = result.with_columns(timestamp=pl.col("timestamp").dt.convert_time_zone("Europe/Amsterdam"))
+
+        return result
+
     def get_locations_torbenized(
         self, start: datetime | None = None, end: datetime | None = None, scale: bool = True
     ) -> pl.DataFrame:
@@ -140,7 +187,8 @@ class QuestDBTrainProvider:
 
 if __name__ == "__main__":
     provider = QuestDBTrainProvider()
-    start = datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(days=3)
+    # start = datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(days=4)
+    start = datetime(2026, 2, 8, 4, 0, 0, 0, tzinfo=DEFAULT_TIMEZONE)
 
     print("--records--")
     train_locations = provider.get_train_locations(start=start)
@@ -153,3 +201,7 @@ if __name__ == "__main__":
     print("--torbenized--")
     tl_torbenized = provider.get_locations_torbenized(start=start)
     print(tl_torbenized.head())
+
+    print("--torbenized v2--")
+    tl_torbenized_v2 = provider.get_locations_pivoted(start=start)
+    print(tl_torbenized_v2.head())
