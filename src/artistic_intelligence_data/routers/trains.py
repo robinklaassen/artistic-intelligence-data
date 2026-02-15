@@ -89,17 +89,17 @@ def get_locations_pivoted(start: datetime | None = None, end: datetime | None = 
     ).write_csv()
 
 
-@router.get("/locations-pivoted2", response_class=CSVResponse)
-def get_locations_pivoted2(start: datetime | None = None, end: datetime | None = None) -> str:
-    """
-    Get train locations pivoted for use in TouchDesigner.
-    Start and end parameters work the same as in `/records`.
-    """
-    provider = QuestDBTrainProvider()
-    pivoted_locations = provider.get_locations_pivoted(start, end)
-    return pivoted_locations.with_columns(
-        pl.col("timestamp").dt.strftime("%H:%M:%S"),
-    ).write_csv()
+# @router.get("/locations-pivoted2", response_class=CSVResponse)
+# def get_locations_pivoted2(start: datetime | None = None, end: datetime | None = None) -> str:
+#     """
+#     Get train locations pivoted for use in TouchDesigner.
+#     Start and end parameters work the same as in `/records`.
+#     """
+#     provider = QuestDBTrainProvider()
+#     pivoted_locations = provider.get_locations_pivoted(start, end)
+#     return pivoted_locations.with_columns(
+#         pl.col("timestamp").dt.strftime("%H:%M:%S"),
+#     ).write_csv()
 
 
 @router.get("/types", response_class=CSVResponse)

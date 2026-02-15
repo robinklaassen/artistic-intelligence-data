@@ -78,7 +78,9 @@ class QuestDBTrainProvider:
 
     def get_locations_pivoted(self, start: datetime | None = None, end: datetime | None = None) -> pl.DataFrame:
         """
-        NEW VERSION OF THE TORBENIZER BUT AS A SQL QUERY YEAH BITCHES
+        NEW VERSION OF THE TORBENIZER BUT AS A SQL QUERY YEAH BITCHES.
+
+        BUT performance is terrible, the query takes ages to perform. Needs further investigation.
         """
         start, end = validate_start_end(start, end)
 
