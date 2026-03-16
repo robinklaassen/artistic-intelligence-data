@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 from time import perf_counter
+from typing import cast
 from zoneinfo import ZoneInfo
 
 import polars as pl
@@ -162,7 +163,7 @@ class QuestDBTrainProvider:
             on="train_id", on_columns=train_ids, index=["timestamp", "var"], values="value", aggregate_function="first"
         )
         locations = locations.sort(by=["timestamp", "var"])
-        locations = locations.collect()
+        locations = cast(pl.DataFrame, locations.collect())
         _logger.info(
             "Pivoted data to format",
             record_count=locations.height,
