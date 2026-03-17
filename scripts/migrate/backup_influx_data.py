@@ -2,16 +2,38 @@ import csv
 import gzip
 import io
 import os
-from datetime import timedelta, datetime
+from datetime import UTC, datetime, timedelta
+from time import perf_counter
 
+from dotenv import load_dotenv
 from influxdb_client import InfluxDBClient
 
 from scripts.migrate.influx_client import get_influxdb_client_from_env
 
 INFLUXDB_ORG = "robinklaassen"
+INFLUXDB_BUCKET = "live-api-collector"
+INFLUXDB_MEASUREMENT = "train_locations"
 
-FIRST_DATE = datetime(2021, 12, 18)
-LAST_DATE = datetime.today()
+# FIRST_DATE = datetime(2021, 12, 18, tzinfo=UTC)
+FIRST_DATE = datetime(2025, 12, 18, tzinfo=UTC)
+LAST_DATE = datetime.now(UTC)
+JUST_FIRST_DATE = True
+
+
+def construct_flux_query(start: datetime, end: datetime) -> str:
+    # |> truncateTimeColumn(unit: 10s)
+    return f"""
+        from(bucket: "{INFLUXDB_BUCKET}")
+        |> range(start: {start.isoformat()}, stop: {end.isoformat()})
+        |> filter(fn: (r) => r["_measurement"] == "{INFLUXDB_MEASUREMENT}")
+        |> pivot(columnKey: ["_field"], rowKey: ["train_id", "_time"], valueColumn: "_value")
+        |> keep(columns: ["train_id", "train_type", "_time", "lat", "lng", "speed", "direction", "accuracy"])
+        |> filter(fn: (r) =>
+            exists r.lat and exists r.lng
+        )
+        |> sort(columns: ["_time"])
+        """
+
 
 def backup_influx_data_csv(client: InfluxDBClient, bucket: str, measurement: str, output_dir: str):
     """
@@ -19,44 +41,15 @@ def backup_influx_data_csv(client: InfluxDBClient, bucket: str, measurement: str
     """
     os.makedirs(output_dir, exist_ok=True)
 
-    # Define the query to fetch data in daily chunks and output as CSV
-    query = f'''
-        from(bucket: "{bucket}")
-          |> range(start: {{start}}, stop: {{stop}})
-          |> filter(fn: (r) => r._measurement == "{measurement}")
-    '''
-
-    # Get the earliest and latest timestamps for the measurement
-    # query_min_max = f'''
-    #     from(bucket: "{bucket}")
-    #       |> range(start: -30y)
-    #       |> filter(fn: (r) => r._measurement == "{measurement}")
-    #       |> group()
-    #       |> first()
-    #       |> keep(columns: ["_time"])
-    #       |> yield(name: "first")
-    #     from(bucket: "{bucket}")
-    #       |> range(start: -30y)
-    #       |> filter(fn: (r) => r._measurement == "{measurement}")
-    #       |> group()
-    #       |> last()
-    #       |> keep(columns: ["_time"])
-    #       |> yield(name: "last")
-    # '''
-    # tables = client.query_api().query(query_min_max, org=INFLUXDB_ORG)
-    # first_time = tables["first"][0].values["_time"]
-    # last_time = tables["last"][0].values["_time"]
-
-    # Iterate over each day in the range
-    # current_day = first_time.to_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
-    # end_day = last_time.to_datetime().replace(hour=0, minute=0, second=0, microsecond=0)
-
     current_day = FIRST_DATE
     while current_day <= LAST_DATE:
+        now = perf_counter()
         start = current_day
         stop = start + timedelta(days=1)
 
         # Query data for the current day and output as CSV
+        query = construct_flux_query(start, stop)
+        # print(query)
         query_api = client.query_api()
         result = query_api.query(query, params={"start": start.isoformat(), "stop": stop.isoformat()})
 
@@ -85,7 +78,7 @@ def backup_influx_data_csv(client: InfluxDBClient, bucket: str, measurement: str
                 csv_writer.writerow(row)
 
         # Compress the CSV data in memory
-        csv_data = csv_buffer.getvalue().encode('utf-8')
+        csv_data = csv_buffer.getvalue().encode("utf-8")
         compressed_data = gzip.compress(csv_data)
 
         # Write the compressed data to disk
@@ -94,11 +87,17 @@ def backup_influx_data_csv(client: InfluxDBClient, bucket: str, measurement: str
         with open(filepath, "wb") as f:
             f.write(compressed_data)
 
-        print(f"Backed up data for {start.date()} to {filepath}")
+        print(f"Backed up data for {start.date()} to {filepath} in {round(perf_counter() - now, 2)} seconds")
+        # first day takes 20 seconds without time truncation and 216 seconds with (3.5 minutes).
+        # much better to do the time truncation when loading the data (if ever) using polars
+
+        if JUST_FIRST_DATE:
+            break
 
         current_day += timedelta(days=1)
 
 
 if __name__ == "__main__":
+    load_dotenv()
     client = get_influxdb_client_from_env()
-    backup_influx_data_csv(client, "live-api-collector", "train_locations", "D:\\Data\\influx_train_locations")
+    backup_influx_data_csv(client, INFLUXDB_BUCKET, INFLUXDB_MEASUREMENT, "D:\\Data\\influx_train_locations")
