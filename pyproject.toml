@@ -80,4 +80,5 @@ script = [
     "ipympl",
     "scipy",
     "streamlit",
+    "influxdb-client",
 ]
