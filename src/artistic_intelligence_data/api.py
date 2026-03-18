@@ -1,6 +1,7 @@
 import uvicorn
 from dotenv import load_dotenv
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 from artistic_intelligence_data.routers import datamon, trains
@@ -47,6 +48,14 @@ app = FastAPI(
 # auto compress responses, size in bytes
 app.add_middleware(GZipMiddleware, minimum_size=10_000)  # type: ignore
 
+# add CORS
+app.add_middleware(
+    CORSMiddleware,  # type: ignore
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(trains.router)
 app.include_router(datamon.router)
