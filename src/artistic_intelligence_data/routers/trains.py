@@ -59,12 +59,12 @@ def get_locations_keyed_by_timestamp(
         locations.with_columns(
             pl.col("timestamp").dt.strftime("%Y-%m-%d %H:%M:%S"),
         )
-        .select(["timestamp", "id", "x", "y"])
+        .select(["timestamp", "train_id", "x", "y"])
         .rows_by_key(key="timestamp", named=True)
     )
 
     # TODO check if this cast can be more efficient inside the polars conversion
-    return {k: [TrainPosition(id=r.id, x=r.x, y=r.y) for r in v] for k, v in keyed_positions}
+    return {k: [TrainPosition(id=r["train_id"], x=r["x"], y=r["y"]) for r in v] for k, v in keyed_positions.items()}
 
     #
     # result = (
