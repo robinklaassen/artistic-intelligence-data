@@ -57,7 +57,7 @@ def get_locations_keyed_by_timestamp(
 
     keyed_positions = (
         locations.with_columns(
-            pl.col("timestamp").dt.strftime("%Y-%m-%d %H:%M:%S"),
+            pl.col("timestamp").dt.strftime("%Y-%m-%dT%H:%M:%S"), # removes timezone info
         )
         .select(["timestamp", "train_id", "x", "y"])
         .rows_by_key(key="timestamp", named=True)
