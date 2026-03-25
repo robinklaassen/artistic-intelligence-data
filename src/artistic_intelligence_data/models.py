@@ -14,6 +14,12 @@ class TrainRecord(BaseModel):
     type: str
 
 
+class TrainPosition(BaseModel):
+    id: int
+    x: int
+    y: int
+
+
 class TrainType(BaseModel):
     id: int
     type: str

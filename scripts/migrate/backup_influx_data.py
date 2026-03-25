@@ -14,7 +14,7 @@ INFLUXDB_ORG = "robinklaassen"
 INFLUXDB_BUCKET = "live-api-collector"
 INFLUXDB_MEASUREMENT = "train_locations"
 
-FIRST_DATE = datetime(2022, 6, 7, tzinfo=UTC)
+FIRST_DATE = datetime(2026, 3, 5, tzinfo=UTC)
 # FIRST_DATE = datetime(2025, 12, 18, tzinfo=UTC)
 LAST_DATE = datetime.now(UTC)
 JUST_FIRST_DATE = False

@@ -5,7 +5,7 @@ import polars as pl
 from fastapi import APIRouter, Security
 
 from artistic_intelligence_data.dependencies import verify_api_key
-from artistic_intelligence_data.models import TrainRecord
+from artistic_intelligence_data.models import TrainPosition, TrainRecord
 from artistic_intelligence_data.response import CSVResponse
 from artistic_intelligence_data.trains.questdb_train_provider import QuestDBTrainProvider
 from src.artistic_intelligence_data.constants import DEFAULT_TIMEZONE
@@ -13,18 +13,6 @@ from src.artistic_intelligence_data.logger import logger
 
 # TODO can I inject an instance of QuestDBTrainProvider to all routes?
 router = APIRouter(prefix="/trains", tags=["trains"], dependencies=[Security(verify_api_key)])
-
-
-# class TrainLocation(BaseModel):
-#     id: int
-#     x: int
-#     y: int
-#     speed: float
-#     direction: float
-#     accuracy: float
-#
-#
-# type KeyedTrainLocations = dict[datetime, list[TrainLocation]]
 
 
 @router.get("/locations")
@@ -52,28 +40,60 @@ def get_locations(start: datetime | None = None, end: datetime | None = None) ->
     ]
 
 
-# @router.get("/keyed")
-# def get_records_keyed_by_timestamp(start: datetime | None = None, end: datetime | None = None) -> KeyedTrainLocations:
-#     """
-#     Get train locations for the requested period as record sets keyed by timestamp.
-#
-#     - **start**: start of the requested period (timestamp, defaults to 10 seconds ago)
-#     - **end**: end of the requested period (timestamp, defaults to current time)
-#     """
-#     records = _records(start, end)
-#     output: KeyedTrainLocations = defaultdict(list)
-#     for record in records:
-#         output[record.timestamp].append(
-#             TrainLocation(
-#                 id=record.id,
-#                 x=record.x,
-#                 y=record.y,
-#                 speed=record.speed,
-#                 direction=record.direction,
-#                 accuracy=record.accuracy,
-#             )
-#         )
-#     return output
+@router.get("/locations-keyed")
+def get_locations_keyed_by_timestamp(
+    start: datetime | None = None, end: datetime | None = None
+) -> dict[str, list[TrainPosition]]:
+    """
+    Get train positions for the requested period as lists keyed by timestamp.
+    Contains a subset of location attributes to minimize transport size.
+
+    - **start**: start of the requested period (timestamp, defaults to 10 seconds ago)
+    - **end**: end of the requested period (timestamp, defaults to current time)
+    """
+
+    provider = QuestDBTrainProvider()
+    locations = provider.get_train_locations(start, end)
+
+    keyed_positions = (
+        locations.with_columns(
+            pl.col("timestamp").dt.strftime("%Y-%m-%d %H:%M:%S"),
+        )
+        .select(["timestamp", "id", "x", "y"])
+        .rows_by_key(key="timestamp", named=True)
+    )
+
+    # TODO check if this cast can be more efficient inside the polars conversion
+    return {k: [TrainPosition(id=r.id, x=r.x, y=r.y) for r in v] for k, v in keyed_positions}
+
+    #
+    # result = (
+    #     locations.with_columns(
+    #         pl.col("timestamp").dt.strftime("%Y-%m-%d %H:%M:%S"),
+    #         pl.struct(["id", "x", "y"]).alias("data"),
+    #     )
+    #     .group_by("timestamp")
+    #     .agg(pl.col("data"))  # should default to list aggregation
+    # )
+    #
+    # return result.rows_by_key()
+    #
+    # locations.group_by("timestamp").agg(pl.struct(["id", "x", "y"]).alias("data"))
+    #
+    # # records = _records(start, end)
+    # output: KeyedTrainLocations = defaultdict(list)
+    # for record in records:
+    #     output[record.timestamp].append(
+    #         TrainLocation(
+    #             id=record.id,
+    #             x=record.x,
+    #             y=record.y,
+    #             speed=record.speed,
+    #             direction=record.direction,
+    #             accuracy=record.accuracy,
+    #         )
+    #     )
+    # return output
 
 
 @router.get("/locations-pivoted", response_class=CSVResponse)
