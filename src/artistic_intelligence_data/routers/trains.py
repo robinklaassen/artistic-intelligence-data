@@ -57,7 +57,7 @@ def get_locations_keyed_by_timestamp(
 
     keyed_positions = (
         locations.with_columns(
-            pl.col("timestamp").dt.strftime("%Y-%m-%dT%H:%M:%S"), # removes timezone info
+            pl.col("timestamp").dt.strftime("%Y-%m-%dT%H:%M:%S"),  # removes timezone info
         )
         .select(["timestamp", "train_id", "x", "y"])
         .rows_by_key(key="timestamp", named=True)
@@ -122,14 +122,24 @@ def get_locations_pivoted(start: datetime | None = None, end: datetime | None = 
 #     ).write_csv()
 
 
-@router.get("/types", response_class=CSVResponse)
-def get_train_types(start: datetime | None = None, end: datetime | None = None) -> str:
+@router.get("/types/csv", response_class=CSVResponse)
+def get_train_types_csv(start: datetime | None = None, end: datetime | None = None) -> str:
     """
-    Get train types for the requested period.
+    Get train types for the requested period as a CSV string.
     """
     provider = QuestDBTrainProvider()
     train_types = provider.get_train_types(start, end)
     return train_types.write_csv()
+
+
+@router.get("/types/json")
+def get_train_types_json(start: datetime | None = None, end: datetime | None = None) -> dict[int, str]:
+    """
+    Get train types for the requested period as a JSON dictionary.
+    """
+    provider = QuestDBTrainProvider()
+    train_types = provider.get_train_types(start, end)
+    return dict(train_types.select("train_id", "train_type").iter_rows())
 
 
 if __name__ == "__main__":
