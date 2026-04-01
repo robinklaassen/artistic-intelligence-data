@@ -53,4 +53,4 @@ jobs:
             cd ${{ secrets.SSH_WORKDIR }}
             git pull origin main
             uv sync
-            systemctl --user restart aid-api
+            sudo systemctl restart aid-api
