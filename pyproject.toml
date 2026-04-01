@@ -9,19 +9,13 @@ authors = [
 license = {text = "GPL-3.0-or-later"}
 requires-python = "<4.0,>=3.12"
 dependencies = [
-#    "APScheduler",
     "connectorx",
     "fastapi[standard]",
-    "geopandas",  # TODO move to scripting dependency
-#    "gunicorn",
     "influxdb-client[ciso]",
-    "pandas",  # TODO remove from core in favor of polars
     "polars",
-    "psycopg[binary]",  # TODO remove in favor of connectorx
     "pyarrow",
     "pydantic",
     "python-dotenv",
-#    "requests",
     "structlog",
     "uvicorn[standard]",
 ]
@@ -81,4 +75,5 @@ script = [
     "scipy",
     "streamlit",
     "influxdb-client",
+    "geopandas",
 ]

@@ -66,35 +66,6 @@ def get_locations_keyed_by_timestamp(
     # TODO check if this cast can be more efficient inside the polars conversion
     return {k: [TrainPosition(id=r["train_id"], x=r["x"], y=r["y"]) for r in v] for k, v in keyed_positions.items()}
 
-    #
-    # result = (
-    #     locations.with_columns(
-    #         pl.col("timestamp").dt.strftime("%Y-%m-%d %H:%M:%S"),
-    #         pl.struct(["id", "x", "y"]).alias("data"),
-    #     )
-    #     .group_by("timestamp")
-    #     .agg(pl.col("data"))  # should default to list aggregation
-    # )
-    #
-    # return result.rows_by_key()
-    #
-    # locations.group_by("timestamp").agg(pl.struct(["id", "x", "y"]).alias("data"))
-    #
-    # # records = _records(start, end)
-    # output: KeyedTrainLocations = defaultdict(list)
-    # for record in records:
-    #     output[record.timestamp].append(
-    #         TrainLocation(
-    #             id=record.id,
-    #             x=record.x,
-    #             y=record.y,
-    #             speed=record.speed,
-    #             direction=record.direction,
-    #             accuracy=record.accuracy,
-    #         )
-    #     )
-    # return output
-
 
 @router.get("/locations-pivoted", response_class=CSVResponse)
 def get_locations_pivoted(start: datetime | None = None, end: datetime | None = None) -> str:
@@ -107,19 +78,6 @@ def get_locations_pivoted(start: datetime | None = None, end: datetime | None = 
     return pivoted_locations.with_columns(
         pl.col("timestamp").dt.strftime("%H:%M:%S"),
     ).write_csv()
-
-
-# @router.get("/locations-pivoted2", response_class=CSVResponse)
-# def get_locations_pivoted2(start: datetime | None = None, end: datetime | None = None) -> str:
-#     """
-#     Get train locations pivoted for use in TouchDesigner.
-#     Start and end parameters work the same as in `/records`.
-#     """
-#     provider = QuestDBTrainProvider()
-#     pivoted_locations = provider.get_locations_pivoted(start, end)
-#     return pivoted_locations.with_columns(
-#         pl.col("timestamp").dt.strftime("%H:%M:%S"),
-#     ).write_csv()
 
 
 @router.get("/types/csv", response_class=CSVResponse)
