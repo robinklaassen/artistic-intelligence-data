@@ -43,17 +43,15 @@ jobs:
     if: github.ref == 'refs/heads/main'  # expression strings must be single quoted
     steps:
       - name: Deploy app
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           script_stop: true
           script: |
-             # TODO
-#            source $HOME/.profile
-#            cd ${{ secrets.SSH_WORKDIR }}
-#            git pull origin main
-#            poetry install
-#            systemctl --user restart aid-collect
-#            systemctl --user restart aid-provide
+            source $HOME/.profile
+            cd ${{ secrets.SSH_WORKDIR }}
+            git pull origin main
+            uv sync
+            systemctl --user restart aid-api
