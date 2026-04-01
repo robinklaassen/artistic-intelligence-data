@@ -51,6 +51,7 @@ jobs:
           script: |
             source $HOME/.profile
             cd ${{ secrets.SSH_WORKDIR }}
-            git pull origin main
+            git checkout main
+            git pull origin main --rebase
             uv sync
             sudo systemctl restart aid-api
