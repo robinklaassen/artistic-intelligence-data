@@ -212,13 +212,13 @@ class QuestDBTrainProvider:
         result = result.with_columns(
             pl.col("first_part_type")
             .map_elements(
-                lambda x: next((m for m in TrainMaterial if x.upper().startswith(m.value)), TrainMaterial.UNKNOWN),
+                lambda x: next((m for m in TrainMaterial if x.upper().startswith(m.value)), None),
                 return_dtype=pl.String,
             )
             .alias("material")
         )
 
-        return result
+        return result.filter(pl.col("material").is_not_null())
 
 
 if __name__ == "__main__":
