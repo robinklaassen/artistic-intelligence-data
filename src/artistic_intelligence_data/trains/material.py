@@ -12,3 +12,5 @@ class TrainMaterial(StrEnum):
     GTW = "GTW"
     ICM = "ICM"
     ICNG = "ICNG"
+
+    UNKNOWN = "UNKNOWN"  # default value
