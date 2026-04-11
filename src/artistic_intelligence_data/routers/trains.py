@@ -100,6 +100,20 @@ def get_train_types_json(start: datetime | None = None, end: datetime | None = N
     return dict(train_types.select("train_id", "train_type").iter_rows())
 
 
+@router.get("/materials/main")
+def get_train_main_materials(start: datetime | None = None, end: datetime | None = None) -> dict[int, str]:
+    """
+    Get train materials for the requested period as a JSON dictionary.
+    These are the main type of 'materieel', not the subtype (e.g. 'VIRM', not 'VIRM IV').
+
+    - **start**: start of the requested period (timestamp, defaults to 1 hour ago)
+    - **end**: end of the requested period (timestamp, defaults to current time)
+    """
+    provider = QuestDBTrainProvider()
+    train_material = provider.get_train_material(start, end)
+    return dict(train_material.select("train_id", "material").iter_rows())
+
+
 if __name__ == "__main__":
     time_start = perf_counter()
     start = datetime.now(DEFAULT_TIMEZONE) - timedelta(hours=3)

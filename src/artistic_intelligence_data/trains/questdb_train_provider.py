@@ -7,8 +7,8 @@ from zoneinfo import ZoneInfo
 import polars as pl
 from dotenv import load_dotenv
 
-from artistic_intelligence_data.constants import DEFAULT_TIMEZONE
 from artistic_intelligence_data.logger import get_logger
+from artistic_intelligence_data.trains.material import TrainMaterial
 from artistic_intelligence_data.utils import validate_start_end
 
 _logger = get_logger(__name__)
@@ -187,24 +187,61 @@ class QuestDBTrainProvider:
         start, end = validate_start_end(start=None, end=None)  # use defaults
         return self.get_train_locations(start=start, end=end).height  # not optimized, loads all data first
 
+    def get_train_material(self, start: datetime | None = None, end: datetime | None = None) -> pl.DataFrame:
+        """
+        Get train 'materieel'.
+        Currently, this is the material type of the first car ('treindeel') at the first stop (station).
+        Data is retrieved every hour, so validate missing start time as such.
+        """
+        start, end = validate_start_end(start=start, end=end, minutes=60)
+
+        query = f"""
+            select train_id, first(first_part_type) as first_part_type,
+            from train_info
+            where timestamp >= '{start}'
+            and timestamp <= '{end}'
+            and train_id != ''
+            group by train_id
+            order by train_id
+            ;
+        """  # nosec
+
+        result = pl.read_database_uri(query=query, uri=self._qdb_uri)
+
+        # TODO using apply is bad practice but not sure how to do this natively
+        result = result.with_columns(
+            pl.col("first_part_type")
+            .map_elements(
+                lambda x: next((m for m in TrainMaterial if x.upper().startswith(m.value)), None),
+                return_dtype=pl.String,
+            )
+            .alias("material")
+        )
+
+        return result
+
 
 if __name__ == "__main__":
     provider = QuestDBTrainProvider()
+
+    materials = provider.get_train_material()
+    print(materials)
+
     # start = datetime.now(tz=DEFAULT_TIMEZONE) - timedelta(days=4)
-    start = datetime(2026, 2, 8, 4, 0, 0, 0, tzinfo=DEFAULT_TIMEZONE)
-
-    print("--records--")
-    train_locations = provider.get_train_locations(start=start)
-    print(train_locations.head())
-
-    print("--types--")
-    train_types = provider.get_train_types(start=start)
-    print(train_types.head())
-
-    print("--torbenized--")
-    tl_torbenized = provider.get_locations_torbenized(start=start)
-    print(tl_torbenized.head())
-
-    print("--torbenized v2--")
-    tl_torbenized_v2 = provider.get_locations_pivoted(start=start)
-    print(tl_torbenized_v2.head())
+    # start = datetime(2026, 2, 8, 4, 0, 0, 0, tzinfo=DEFAULT_TIMEZONE)
+    #
+    # print("--records--")
+    # train_locations = provider.get_train_locations(start=start)
+    # print(train_locations.head())
+    #
+    # print("--types--")
+    # train_types = provider.get_train_types(start=start)
+    # print(train_types.head())
+    #
+    # print("--torbenized--")
+    # tl_torbenized = provider.get_locations_torbenized(start=start)
+    # print(tl_torbenized.head())
+    #
+    # print("--torbenized v2--")
+    # tl_torbenized_v2 = provider.get_locations_pivoted(start=start)
+    # print(tl_torbenized_v2.head())
